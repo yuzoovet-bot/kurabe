@@ -31,12 +31,37 @@ const C = {
   shadowSm: "0 2px 8px rgba(244,114,182,0.08)",
 };
 
-const STORAGE_KEY = "kurabe_ai_v1";
+const STORAGE_KEY = "kurabe_v1";
 function load() {
-  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : { categories: [] }; }
-  catch { return { categories: [] }; }
+  try {
+    const old = localStorage.getItem("kurabe_simple_v1");
+    if (old && !localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, old);
+      localStorage.removeItem("kurabe_simple_v1");
+    }
+    const r = localStorage.getItem(STORAGE_KEY);
+    return r ? JSON.parse(r) : { categories: [] };
+  } catch { return { categories: [] }; }
 }
 function save(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch {} }
+
+function exportData() {
+  const lines = [];
+  state.categories.forEach(cat => {
+    lines.push(`■ ${cat.name}`);
+    cat.items.forEach((item, i) => {
+      lines.push(`  ${i + 1}. ${item.name || "（名前なし）"}`);
+      if (item.memo) lines.push(`     ${item.memo.replace(/\n/g, " / ")}`);
+    });
+    lines.push("");
+  });
+  const text = lines.join("\n");
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "kurabe_メモ.txt";
+  a.click();
+}
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
 let state = load();
@@ -63,12 +88,15 @@ function listView() {
   return `
     <div style="min-height:100vh;background:${C.bg};display:flex;flex-direction:column;">
       <div style="background:white;padding:52px 20px 18px;position:sticky;top:0;z-index:10;border-bottom:1px solid ${C.border};box-shadow:${C.shadowSm};">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:22px;">🛍️</span>
-          <div>
-            <h1 style="font-size:22px;font-weight:800;color:${C.text};letter-spacing:0.06em;">KuraBe</h1>
-            <p style="font-size:11px;color:${C.accent};font-weight:500;letter-spacing:0.08em;">✦ 買い物上手の比較メモ ✦</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:22px;">🛍️</span>
+            <div>
+              <h1 style="font-size:22px;font-weight:800;color:${C.text};letter-spacing:0.06em;">KuraBe</h1>
+              <p style="font-size:11px;color:${C.accent};font-weight:500;letter-spacing:0.08em;">✦ 買い物上手の比較メモ ✦</p>
+            </div>
           </div>
+          ${state.categories.length > 0 ? `<button id="btn-export" style="background:${C.accent};color:white;border:none;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.05em;">書き出し</button>` : ""}
         </div>
       </div>
       <div style="flex:1;padding:20px 16px 120px;">
@@ -146,6 +174,7 @@ function bindList() {
   document.getElementById("modal-ok")?.addEventListener("click", doAdd);
   document.getElementById("modal")?.addEventListener("click", e => { if (e.target === document.getElementById("modal")) hideModal(); });
   document.getElementById("modal-input")?.addEventListener("keydown", e => { if (e.key === "Enter") doAdd(); });
+  document.getElementById("btn-export")?.addEventListener("click", exportData);
   document.querySelectorAll(".btn-select").forEach(btn => {
     btn.addEventListener("click", () => { currentCatId = btn.dataset.id; aiResult = null; aiWinner = null; render(); });
   });
