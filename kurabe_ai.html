@@ -47,21 +47,119 @@ function load() {
 function save(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch {} }
 
 function exportData() {
-  const lines = [];
-  state.categories.forEach(cat => {
-    lines.push(`■ ${cat.name}`);
-    cat.items.forEach((item, i) => {
-      lines.push(`  ${i + 1}. ${item.name || "（名前なし）"}`);
-      if (item.memo) lines.push(`     ${item.memo.replace(/\n/g, " / ")}`);
-    });
-    lines.push("");
+  const W = 720, PAD = 48, LINE = 44, CARD_PAD = 32;
+  const cats = state.categories.filter(c => c.items.length > 0 || c.name);
+
+  // 高さを計算
+  let totalH = PAD * 2 + 80; // header
+  cats.forEach(cat => {
+    totalH += 56 + CARD_PAD; // カテゴリ見出し
+    totalH += (cat.items.length || 1) * LINE + CARD_PAD;
   });
-  const text = lines.join("\n");
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "kurabe_メモ.txt";
-  a.click();
+  totalH = Math.max(totalH, 400);
+
+  const canvas = document.createElement("canvas");
+  const DPR = 2;
+  canvas.width = W * DPR;
+  canvas.height = totalH * DPR;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(DPR, DPR);
+
+  // 背景グラデーション
+  const grad = ctx.createLinearGradient(0, 0, W, totalH);
+  grad.addColorStop(0, "#FFF1F3");
+  grad.addColorStop(1, "#FDF2F8");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, totalH);
+
+  // ヘッダー
+  ctx.fillStyle = "#F472B6";
+  ctx.beginPath();
+  ctx.roundRect(PAD, PAD, W - PAD * 2, 72, 20);
+  ctx.fill();
+  ctx.fillStyle = "white";
+  ctx.font = "bold 28px -apple-system, 'Hiragino Sans', sans-serif";
+  ctx.fillText("🛍️ KuraBe", PAD + 20, PAD + 46);
+  ctx.font = "14px -apple-system, 'Hiragino Sans', sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.fillText("✦ 買い物上手の比較メモ ✦", PAD + 20, PAD + 66);
+
+  let y = PAD + 72 + 24;
+
+  cats.forEach(cat => {
+    // カテゴリカード背景
+    const itemCount = cat.items.length || 1;
+    const cardH = 48 + itemCount * LINE + CARD_PAD;
+    ctx.fillStyle = "white";
+    ctx.shadowColor = "rgba(244,114,182,0.12)";
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.roundRect(PAD, y, W - PAD * 2, cardH, 16);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // カテゴリ名
+    ctx.fillStyle = "#831843";
+    ctx.font = "bold 20px -apple-system, 'Hiragino Sans', sans-serif";
+    ctx.fillText("■ " + cat.name, PAD + 20, y + 34);
+
+    // 区切り線
+    ctx.strokeStyle = "#FCE7F3";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD + 16, y + 46);
+    ctx.lineTo(W - PAD - 16, y + 46);
+    ctx.stroke();
+
+    let iy = y + 46 + LINE * 0.7;
+    if (cat.items.length === 0) {
+      ctx.fillStyle = "#FBCFE8";
+      ctx.font = "14px -apple-system, 'Hiragino Sans', sans-serif";
+      ctx.fillText("候補なし", PAD + 24, iy);
+    } else {
+      cat.items.forEach((item, i) => {
+        const isWin = aiWinner && item.name === aiWinner;
+        if (isWin) {
+          ctx.fillStyle = "#FDF2F8";
+          ctx.beginPath();
+          ctx.roundRect(PAD + 12, iy - LINE * 0.7 + 4, W - PAD * 2 - 24, LINE - 4, 10);
+          ctx.fill();
+        }
+        ctx.fillStyle = isWin ? "#DB2777" : "#BE185D";
+        ctx.font = isWin ? "bold 16px -apple-system, 'Hiragino Sans', sans-serif" : "15px -apple-system, 'Hiragino Sans', sans-serif";
+        const label = `${i + 1}.  ${item.name || "（名前なし）"}`;
+        ctx.fillText(label, PAD + 24, iy);
+        if (isWin) {
+          ctx.fillStyle = "#F472B6";
+          ctx.font = "bold 13px -apple-system, 'Hiragino Sans', sans-serif";
+          ctx.fillText("★ AIおすすめ", W - PAD - 100, iy);
+        }
+        if (item.memo) {
+          iy += LINE * 0.55;
+          ctx.fillStyle = "#BE185D";
+          ctx.font = "12px -apple-system, 'Hiragino Sans', sans-serif";
+          ctx.globalAlpha = 0.6;
+          const memo = item.memo.replace(/\n/g, " ／ ");
+          ctx.fillText("   " + (memo.length > 36 ? memo.slice(0, 36) + "…" : memo), PAD + 24, iy);
+          ctx.globalAlpha = 1;
+        }
+        iy += LINE;
+      });
+    }
+    y += cardH + 16;
+  });
+
+  // フッター
+  ctx.fillStyle = "#FBCFE8";
+  ctx.font = "11px -apple-system, 'Hiragino Sans', sans-serif";
+  ctx.fillText("KuraBe", PAD, totalH - 14);
+
+  canvas.toBlob(blob => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "kurabe_比較メモ.png";
+    a.click();
+  }, "image/png");
 }
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
