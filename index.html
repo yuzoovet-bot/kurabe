@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>KuraBe</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #FFF1F3; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; min-height: 100vh; }
+  button { font-family: inherit; cursor: pointer; }
+  input, textarea { font-family: inherit; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const C = {
+  bg: "#FFF1F3", accent: "#F472B6", accentDark: "#DB2777",
+  accentLight: "#FDF2F8", accentBorder: "#FBCFE8",
+  text: "#831843", textMuted: "#BE185D", border: "#FCE7F3",
+  shadow: "0 4px 20px rgba(244,114,182,0.10)",
+  shadowSm: "0 2px 8px rgba(244,114,182,0.08)",
+};
+
+const STORAGE_KEY = "kurabe_simple_v1";
+function load() {
+  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : { categories: [] }; }
+  catch { return { categories: [] }; }
+}
+function save(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch {} }
+function uid() { return Math.random().toString(36).slice(2, 10); }
+
+let state = load();
+let currentCatId = null;
+
+function render() {
+  const app = document.getElementById("app");
+  if (currentCatId) {
+    const cat = state.categories.find(c => c.id === currentCatId);
+    if (cat) { app.innerHTML = compareView(cat); bindCompare(cat); return; }
+  }
+  app.innerHTML = listView();
+  bindList();
+}
+
+// ===== リスト画面 =====
+function listView() {
+  const emojis = ["👜","🛋️","👗","💄","🕯️","🧴","📦","👟","🌸","🍽️"];
+  const getEmoji = id => emojis[id.charCodeAt(0) % emojis.length];
+  const cats = state.categories;
+  return `
+    <div style="min-height:100vh;background:${C.bg};display:flex;flex-direction:column;">
+      <div style="background:white;padding:52px 20px 18px;position:sticky;top:0;z-index:10;border-bottom:1px solid ${C.border};box-shadow:${C.shadowSm};">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:22px;">🛍️</span>
+          <div>
+            <h1 style="font-size:22px;font-weight:800;color:${C.text};letter-spacing:0.06em;">KuraBe</h1>
+            <p style="font-size:11px;color:${C.accent};font-weight:500;letter-spacing:0.08em;">✦ 買い物上手の比較メモ ✦</p>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1;padding:20px 16px 120px;">
+        ${cats.length === 0 ? `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:80px;gap:12px;">
+            <button id="btn-add-empty" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 24px;border-radius:24px;">
+              <span style="font-size:64px;filter:drop-shadow(0 4px 12px rgba(244,114,182,0.3));line-height:1;">🌸</span>
+              <p style="font-size:15px;color:${C.accent};font-weight:700;">タップして始める</p>
+              <p style="font-size:12px;color:${C.accentBorder};">比較したいものを追加しよう</p>
+            </button>
+          </div>
+        ` : `
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            ${cats.map(cat => `
+              <div style="background:white;border-radius:18px;box-shadow:${C.shadowSm};border:1px solid ${C.border};display:flex;overflow:hidden;">
+                <button class="btn-select" data-id="${cat.id}" style="flex:1;display:flex;align-items:center;gap:14px;padding:18px 16px;border:none;background:none;text-align:left;">
+                  <span style="font-size:28px;flex-shrink:0;">${getEmoji(cat.id)}</span>
+                  <div>
+                    <p style="font-size:15px;font-weight:700;color:${C.text};">${escHtml(cat.name)}</p>
+                    <p style="font-size:11px;color:${C.accent};margin-top:3px;font-weight:500;">${cat.items.length === 0 ? "候補を追加しよう ✦" : `${cat.items.length}件の候補`}</p>
+                  </div>
+                </button>
+                <button class="btn-delete" data-id="${cat.id}" style="padding:18px 16px;border:none;background:none;color:${C.accentBorder};">
+                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M1.5 3.5h12M4.5 3.5V2.5a1 1 0 011-1h4a1 1 0 011 1v1M5.5 6.5v5M9.5 6.5v5M2.5 3.5l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            `).join("")}
+          </div>
+        `}
+      </div>
+      <div style="position:fixed;bottom:32px;right:20px;">
+        <button id="btn-add-fab" style="width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,${C.accent},${C.accentDark});color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(219,39,119,0.35);">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+    ${addModal()}
+  `;
+}
+
+function addModal() {
+  return `
+    <div id="modal" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(131,24,67,0.18);backdrop-filter:blur(2px);align-items:flex-end;">
+      <div style="width:100%;background:#fff;border-radius:24px 24px 0 0;padding:28px 20px 40px;box-shadow:0 -8px 32px rgba(244,114,182,0.15);">
+        <div style="width:36px;height:4px;background:${C.accentBorder};border-radius:99px;margin:0 auto 20px;"></div>
+        <p style="font-size:13px;color:${C.textMuted};margin-bottom:6px;font-weight:600;letter-spacing:0.04em;">比較したいものは？</p>
+        <input id="modal-input" type="text" placeholder="例：3段ラック、ミニバッグ、日焼け止め"
+          style="width:100%;border:1.5px solid ${C.accentBorder};border-radius:14px;padding:13px 16px;font-size:15px;color:${C.text};outline:none;background:${C.accentLight};">
+        <div style="display:flex;gap:10px;margin-top:14px;">
+          <button id="modal-cancel" style="flex:1;padding:13px;border-radius:14px;border:1.5px solid ${C.accentBorder};color:${C.textMuted};font-size:14px;font-weight:500;background:white;">キャンセル</button>
+          <button id="modal-ok" style="flex:1;padding:13px;border-radius:14px;border:none;background:linear-gradient(135deg,${C.accent},${C.accentDark});color:white;font-size:14px;font-weight:700;">追加する ✦</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bindList() {
+  const showModal = () => {
+    const m = document.getElementById("modal");
+    m.style.display = "flex";
+    document.getElementById("modal-input").value = "";
+    setTimeout(() => document.getElementById("modal-input").focus(), 50);
+  };
+  const hideModal = () => { document.getElementById("modal").style.display = "none"; };
+  const doAdd = () => {
+    const v = document.getElementById("modal-input").value.trim();
+    if (!v) return;
+    state.categories.push({ id: uid(), name: v, items: [] });
+    save(state); hideModal(); render();
+  };
+
+  document.getElementById("btn-add-fab")?.addEventListener("click", showModal);
+  document.getElementById("btn-add-empty")?.addEventListener("click", showModal);
+  document.getElementById("modal-cancel")?.addEventListener("click", hideModal);
+  document.getElementById("modal-ok")?.addEventListener("click", doAdd);
+  document.getElementById("modal")?.addEventListener("click", e => { if (e.target === document.getElementById("modal")) hideModal(); });
+  document.getElementById("modal-input")?.addEventListener("keydown", e => { if (e.key === "Enter") doAdd(); });
+
+  document.querySelectorAll(".btn-select").forEach(btn => {
+    btn.addEventListener("click", () => { currentCatId = btn.dataset.id; render(); });
+  });
+  document.querySelectorAll(".btn-delete").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (!confirm("このカテゴリを削除する？")) return;
+      state.categories = state.categories.filter(c => c.id !== btn.dataset.id);
+      save(state); render();
+    });
+  });
+}
+
+// ===== 比較画面 =====
+function compareView(cat) {
+  return `
+    <div style="min-height:100vh;background:${C.bg};display:flex;flex-direction:column;">
+      <div style="background:white;padding:52px 16px 14px;position:sticky;top:0;z-index:10;border-bottom:1px solid ${C.border};box-shadow:${C.shadowSm};">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button id="btn-back" style="width:36px;height:36px;border-radius:12px;border:1.5px solid ${C.border};background:${C.accentLight};display:flex;align-items:center;justify-content:center;color:${C.textMuted};flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 3.5L5.5 9 11 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div>
+            <h2 style="font-size:16px;font-weight:800;color:${C.text};">${escHtml(cat.name)}</h2>
+            <p style="font-size:11px;color:${C.accent};font-weight:500;">${cat.items.length}件の候補を比較中</p>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1;padding-top:20px;padding-bottom:140px;">
+        ${cat.items.length === 0 ? `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:80px;gap:12px;">
+            <span style="font-size:44px;">📸</span>
+            <p style="font-size:14px;color:${C.accent};font-weight:600;">候補を追加してみて</p>
+          </div>
+        ` : `
+          <div id="cards-container" style="display:flex;gap:14px;padding:4px 16px 16px;overflow-x:auto;scroll-snap-type:x mandatory;">
+            ${cat.items.map(item => productCard(item)).join("")}
+          </div>
+        `}
+      </div>
+      <div style="position:fixed;bottom:0;left:0;right:0;padding:16px 16px 32px;background:linear-gradient(to top, rgba(255,241,243,1) 70%, rgba(255,241,243,0));display:flex;gap:10px;align-items:flex-end;">
+        <button id="btn-add-item" style="width:52px;height:52px;border-radius:50%;border:1.5px solid ${C.accentBorder};background:white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(244,114,182,0.2);color:${C.accent};flex-shrink:0;margin-left:auto;">
+          <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function productCard(item) {
+  const photo = item.photo
+    ? `<img src="${item.photo}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+    : `<div style="display:flex;flex-direction:column;align-items:center;gap:8px;color:${C.accentBorder};">
+        <svg width="32" height="32" viewBox="0 0 28 28" fill="none"><path d="M4 9h2.5l2-3h7l2 3H22a2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V11a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="14" cy="16" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span style="font-size:11px;font-weight:500;color:${C.accent};">タップして写真を追加</span>
+       </div>`;
+  return `
+    <div data-item-id="${item.id}" class="product-card" style="background:white;border-radius:20px;box-shadow:${C.shadowSm};border:1px solid ${C.border};flex-shrink:0;width:220px;overflow:hidden;display:flex;flex-direction:column;scroll-snap-align:start;">
+      <button class="btn-photo" data-id="${item.id}" style="width:100%;height:160px;background:${C.accentLight};border:none;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        ${photo}
+        <input type="file" accept="image/*" class="file-input" data-id="${item.id}" style="display:none;">
+      </button>
+      <div style="padding:12px 14px 4px;">
+        <input type="text" class="item-name" data-id="${item.id}" value="${escAttr(item.name)}" placeholder="商品名"
+          style="width:100%;font-size:13px;font-weight:700;color:${C.text};border:none;border-bottom:1.5px solid ${C.border};padding-bottom:6px;outline:none;background:none;">
+      </div>
+      <div style="padding:8px 14px 10px;flex:1;">
+        <textarea class="item-memo" data-id="${item.id}" rows="4" placeholder="価格・気になる点・感想&#10;自由に書いてね"
+          style="width:100%;font-size:12px;color:#9D174D;resize:none;outline:none;border:none;background:none;line-height:1.7;">${escHtml(item.memo)}</textarea>
+      </div>
+      <div style="padding:0 14px 14px;">
+        <button class="btn-del-item" data-id="${item.id}" style="width:100%;padding:8px;border-radius:12px;border:1px solid ${C.border};background:none;color:${C.accentBorder};font-size:11px;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none"><path d="M1.5 3.5h12M4.5 3.5V2.5a1 1 0 011-1h4a1 1 0 011 1v1M5.5 6.5v5M9.5 6.5v5M2.5 3.5l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          削除
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function bindCompare(cat) {
+  document.getElementById("btn-back")?.addEventListener("click", () => { currentCatId = null; render(); });
+  document.getElementById("btn-add-item")?.addEventListener("click", () => {
+    cat.items.push({ id: uid(), name: "", photo: null, memo: "" });
+    save(state); render();
+  });
+
+  document.querySelectorAll(".btn-photo").forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.querySelector(".file-input").click();
+    });
+  });
+  document.querySelectorAll(".file-input").forEach(input => {
+    input.addEventListener("change", e => {
+      const f = e.target.files?.[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        const item = cat.items.find(i => i.id === input.dataset.id);
+        if (item) { item.photo = ev.target.result; save(state); render(); }
+      };
+      r.readAsDataURL(f);
+    });
+  });
+  document.querySelectorAll(".item-name").forEach(input => {
+    input.addEventListener("input", e => {
+      const item = cat.items.find(i => i.id === input.dataset.id);
+      if (item) { item.name = e.target.value; save(state); }
+    });
+  });
+  document.querySelectorAll(".item-memo").forEach(ta => {
+    ta.addEventListener("input", e => {
+      const item = cat.items.find(i => i.id === ta.dataset.id);
+      if (item) { item.memo = e.target.value; save(state); }
+    });
+  });
+  document.querySelectorAll(".btn-del-item").forEach(btn => {
+    btn.addEventListener("click", () => {
+      cat.items = cat.items.filter(i => i.id !== btn.dataset.id);
+      save(state); render();
+    });
+  });
+}
+
+function escHtml(s) {
+  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function escAttr(s) { return escHtml(s); }
+
+render();
+</script>
+</body>
+</html>
