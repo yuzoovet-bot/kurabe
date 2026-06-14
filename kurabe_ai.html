@@ -118,7 +118,7 @@ function exportData() {
       ctx.fillText("候補なし", PAD + 24, iy);
     } else {
       cat.items.forEach((item, i) => {
-        const isWin = aiWinner && item.name === aiWinner;
+        const isWin = aiWinner && item.id === aiWinner;
         if (isWin) {
           ctx.fillStyle = "#FDF2F8";
           ctx.beginPath();
@@ -370,7 +370,7 @@ function compareView(cat) {
 }
 
 function productCard(item) {
-  const isWinner = !!aiWinner && item.name === aiWinner;
+  const isWinner = !!aiWinner && item.id === aiWinner;
   const photo = item.photo
     ? `<img src="${item.photo}" alt="" style="width:100%;height:100%;object-fit:cover;">`
     : `<div style="display:flex;flex-direction:column;align-items:center;gap:8px;color:${C.accentBorder};">
@@ -419,15 +419,17 @@ function bindCompare(cat) {
     try {
       const parts = [{
         type: "text",
-        text: `「${cat.name}」で以下の${cat.items.length}つの商品を比較しています。写真とメモを見て、どれが一番おすすめか教えてください。\n\n回答形式：\n①おすすめ商品名\n②理由（2〜3行）\n③各商品の評価（◎○△で）\n\n20〜30代女性目線で率直に答えてね。`
+        text: `「${cat.name}」で以下の${cat.items.length}つの候補を比較しています。各候補には番号（1〜${cat.items.length}）が付いていて、その直後にメモ、続けて写真が並んでいます。番号・メモ・写真の対応をよく確認して、どれが一番おすすめか選んでください。\n\n回答は必ず次の形式で書いてください。\n\nWINNER:（おすすめする候補の番号を半角数字で1つだけ）\n①おすすめ候補の名前\n②理由（2〜3行）\n③各候補の評価（番号ごとに◎○△で）\n\n1行目のWINNER:の番号と、①で挙げる名前は必ず同じ候補を指すこと。20〜30代女性目線で率直に答えてね。`
       }];
       for (let i = 0; i < cat.items.length; i++) {
         const item = cat.items[i];
-        const label = item.name || `候補${i + 1}`;
-        parts.push({ type: "text", text: `\n\n【${label}】\nメモ：${item.memo || "（記入なし）"}` });
+        const label = item.name || `（名前未記入）`;
+        parts.push({ type: "text", text: `\n\n【候補${i + 1}：${label}】\nメモ：${item.memo || "（記入なし）"}\n↓この候補${i + 1}の写真：` });
         if (item.photo) {
           const match = item.photo.match(/^data:([^;]+);base64,(.+)$/);
           if (match) parts.push({ type: "image", source: { type: "base64", media_type: match[1], data: match[2] } });
+        } else {
+          parts.push({ type: "text", text: "（写真なし）" });
         }
       }
       const resp = await fetch("https://api.anthropic.com/v1/messages", {
@@ -457,9 +459,12 @@ function bindCompare(cat) {
         }
       } else {
         aiResult = data.content?.map(b => b.text || "").join("") || "判定できませんでした";
-        for (const item of cat.items) {
-          if (item.name && aiResult.includes(item.name)) { aiWinner = item.name; break; }
+        const m = aiResult.match(/WINNER:\s*(\d+)/i);
+        if (m) {
+          const idx = parseInt(m[1], 10) - 1;
+          if (cat.items[idx]) aiWinner = cat.items[idx].id;
         }
+        aiResult = aiResult.replace(/WINNER:\s*\d+\s*\n?/i, "").trim();
       }
     } catch (e) {
       aiResult = "通信エラーが発生したよ。電波の良いところでもう一度試してね。";
