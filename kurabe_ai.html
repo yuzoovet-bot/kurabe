@@ -441,12 +441,28 @@ function bindCompare(cat) {
         body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, messages: [{ role: "user", content: parts }] })
       });
       const data = await resp.json();
-      aiResult = data.content?.map(b => b.text || "").join("") || "判定できませんでした";
-      for (const item of cat.items) {
-        if (item.name && aiResult.includes(item.name)) { aiWinner = item.name; break; }
+      if (!resp.ok || data.error) {
+        const msg = data.error?.message || "";
+        if (resp.status === 401 || /x-api-key|authentication/i.test(msg)) {
+          aiLoading = false;
+          alert("APIキーが無効だよ。新しいキーを設定し直してね。");
+          localStorage.removeItem("kurabe_api_key");
+          render();
+          return;
+        }
+        if (resp.status === 429) {
+          aiResult = "今アクセスが混み合ってるみたい。少し待ってもう一度試してね。";
+        } else {
+          aiResult = "AIエラー（" + resp.status + "）：" + (msg || "もう一度試してみてね。");
+        }
+      } else {
+        aiResult = data.content?.map(b => b.text || "").join("") || "判定できませんでした";
+        for (const item of cat.items) {
+          if (item.name && aiResult.includes(item.name)) { aiWinner = item.name; break; }
+        }
       }
-    } catch {
-      aiResult = "エラーが発生しました。もう一度試してみてね。";
+    } catch (e) {
+      aiResult = "通信エラーが発生したよ。電波の良いところでもう一度試してね。";
     }
     aiLoading = false; render();
   });
