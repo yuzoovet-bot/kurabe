@@ -163,6 +163,38 @@ function exportData() {
 }
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
+const OK_IMG = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+// 画像dataURLをAI対応形式(JPEG)に統一しつつ縮小する。変換できなければnull。
+function ensureJpeg(dataUrl) {
+  return new Promise(resolve => {
+    const m = dataUrl.match(/^data:([^;]+);/);
+    if (m && OK_IMG.includes(m[1])) { resolve(dataUrl); return; }
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height, max = 1280;
+      if (Math.max(w, h) > max) { const s = max / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      try { resolve(c.toDataURL("image/jpeg", 0.85)); } catch { resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = dataUrl;
+  });
+}
+// ファイルを読み込み、縮小したJPEGのdataURLにして返す。
+function fileToJpeg(file) {
+  return new Promise(resolve => {
+    const fr = new FileReader();
+    fr.onload = async () => {
+      const out = await ensureJpeg(fr.result);
+      resolve(out || fr.result);
+    };
+    fr.onerror = () => resolve(null);
+    fr.readAsDataURL(file);
+  });
+}
+
 let state = load();
 let currentCatId = null;
 let aiResult = null;
