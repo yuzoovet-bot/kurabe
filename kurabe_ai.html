@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>KuraBe AI</title>
 <link rel="apple-touch-icon" href="https://yuzoovet-bot.github.io/kurabe/icon.png">
 <link rel="icon" href="https://yuzoovet-bot.github.io/kurabe/icon.png">
@@ -24,8 +24,15 @@
 <body>
 <div id="app"></div>
 <script>
-function getApiKey() { return localStorage.getItem("kurabe_api_key") || ""; }
-function saveApiKey(k) { localStorage.setItem("kurabe_api_key", k); }
+/* =========================================================
+   KuraBe ②AIあり版 (kurabe_ai_v5)
+   v4からの変更（園田フィードバック 2026-06-15）：
+   - カードは「写真＋コメント」だけの一体型に。商品名の欄も廃止。
+   保存キーは②専用 kurabe_ai_v1（①AIなし版と分離）。
+   ========================================================= */
+
+function getApiKey() { return localStorage.getItem("kurabe_ai_api_key") || ""; }
+function saveApiKey(k) { localStorage.setItem("kurabe_ai_api_key", k); }
 
 const C = {
   bg: "#FFF1F3", accent: "#F472B6", accentDark: "#DB2777",
@@ -35,168 +42,17 @@ const C = {
   shadowSm: "0 2px 8px rgba(244,114,182,0.08)",
 };
 
-const STORAGE_KEY = "kurabe_v1";
+// ②AIあり版専用の保存キー（①とは分離。旧データの自動移行はしない）
+const STORAGE_KEY = "kurabe_ai_v1";
 function load() {
   try {
-    const old = localStorage.getItem("kurabe_simple_v1");
-    if (old && !localStorage.getItem(STORAGE_KEY)) {
-      localStorage.setItem(STORAGE_KEY, old);
-      localStorage.removeItem("kurabe_simple_v1");
-    }
     const r = localStorage.getItem(STORAGE_KEY);
     return r ? JSON.parse(r) : { categories: [] };
   } catch { return { categories: [] }; }
 }
 function save(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch {} }
 
-function exportData() {
-  const W = 720, PAD = 48, LINE = 44, CARD_PAD = 32;
-  const cats = state.categories.filter(c => c.items.length > 0 || c.name);
-
-  // 高さを計算
-  let totalH = PAD * 2 + 80; // header
-  cats.forEach(cat => {
-    totalH += 56 + CARD_PAD; // カテゴリ見出し
-    totalH += (cat.items.length || 1) * LINE + CARD_PAD;
-  });
-  totalH = Math.max(totalH, 400);
-
-  const canvas = document.createElement("canvas");
-  const DPR = 2;
-  canvas.width = W * DPR;
-  canvas.height = totalH * DPR;
-  const ctx = canvas.getContext("2d");
-  ctx.scale(DPR, DPR);
-
-  // 背景グラデーション
-  const grad = ctx.createLinearGradient(0, 0, W, totalH);
-  grad.addColorStop(0, "#FFF1F3");
-  grad.addColorStop(1, "#FDF2F8");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, totalH);
-
-  // ヘッダー
-  ctx.fillStyle = "#F472B6";
-  ctx.beginPath();
-  ctx.roundRect(PAD, PAD, W - PAD * 2, 72, 20);
-  ctx.fill();
-  ctx.fillStyle = "white";
-  ctx.font = "bold 28px -apple-system, 'Hiragino Sans', sans-serif";
-  ctx.fillText("🛍️ KuraBe", PAD + 20, PAD + 46);
-  ctx.font = "14px -apple-system, 'Hiragino Sans', sans-serif";
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.fillText("✦ 買い物上手の比較メモ ✦", PAD + 20, PAD + 66);
-
-  let y = PAD + 72 + 24;
-
-  cats.forEach(cat => {
-    // カテゴリカード背景
-    const itemCount = cat.items.length || 1;
-    const cardH = 48 + itemCount * LINE + CARD_PAD;
-    ctx.fillStyle = "white";
-    ctx.shadowColor = "rgba(244,114,182,0.12)";
-    ctx.shadowBlur = 16;
-    ctx.beginPath();
-    ctx.roundRect(PAD, y, W - PAD * 2, cardH, 16);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // カテゴリ名
-    ctx.fillStyle = "#831843";
-    ctx.font = "bold 20px -apple-system, 'Hiragino Sans', sans-serif";
-    ctx.fillText("■ " + cat.name, PAD + 20, y + 34);
-
-    // 区切り線
-    ctx.strokeStyle = "#FCE7F3";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(PAD + 16, y + 46);
-    ctx.lineTo(W - PAD - 16, y + 46);
-    ctx.stroke();
-
-    let iy = y + 46 + LINE * 0.7;
-    if (cat.items.length === 0) {
-      ctx.fillStyle = "#FBCFE8";
-      ctx.font = "14px -apple-system, 'Hiragino Sans', sans-serif";
-      ctx.fillText("候補なし", PAD + 24, iy);
-    } else {
-      cat.items.forEach((item, i) => {
-        const isWin = aiWinner && item.id === aiWinner;
-        if (isWin) {
-          ctx.fillStyle = "#FDF2F8";
-          ctx.beginPath();
-          ctx.roundRect(PAD + 12, iy - LINE * 0.7 + 4, W - PAD * 2 - 24, LINE - 4, 10);
-          ctx.fill();
-        }
-        ctx.fillStyle = isWin ? "#DB2777" : "#BE185D";
-        ctx.font = isWin ? "bold 16px -apple-system, 'Hiragino Sans', sans-serif" : "15px -apple-system, 'Hiragino Sans', sans-serif";
-        const label = `${i + 1}.  ${item.name || "（名前なし）"}`;
-        ctx.fillText(label, PAD + 24, iy);
-        if (isWin) {
-          ctx.fillStyle = "#F472B6";
-          ctx.font = "bold 13px -apple-system, 'Hiragino Sans', sans-serif";
-          ctx.fillText("★ AIおすすめ", W - PAD - 100, iy);
-        }
-        if (item.memo) {
-          iy += LINE * 0.55;
-          ctx.fillStyle = "#BE185D";
-          ctx.font = "12px -apple-system, 'Hiragino Sans', sans-serif";
-          ctx.globalAlpha = 0.6;
-          const memo = item.memo.replace(/\n/g, " ／ ");
-          ctx.fillText("   " + (memo.length > 36 ? memo.slice(0, 36) + "…" : memo), PAD + 24, iy);
-          ctx.globalAlpha = 1;
-        }
-        iy += LINE;
-      });
-    }
-    y += cardH + 16;
-  });
-
-  // フッター
-  ctx.fillStyle = "#FBCFE8";
-  ctx.font = "11px -apple-system, 'Hiragino Sans', sans-serif";
-  ctx.fillText("KuraBe", PAD, totalH - 14);
-
-  canvas.toBlob(blob => {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "kurabe_比較メモ.png";
-    a.click();
-  }, "image/png");
-}
 function uid() { return Math.random().toString(36).slice(2, 10); }
-
-const OK_IMG = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-// 画像dataURLをAI対応形式(JPEG)に統一しつつ縮小する。変換できなければnull。
-function ensureJpeg(dataUrl) {
-  return new Promise(resolve => {
-    const m = dataUrl.match(/^data:([^;]+);/);
-    if (m && OK_IMG.includes(m[1])) { resolve(dataUrl); return; }
-    const img = new Image();
-    img.onload = () => {
-      let w = img.width, h = img.height, max = 1280;
-      if (Math.max(w, h) > max) { const s = max / Math.max(w, h); w = Math.round(w * s); h = Math.round(h * s); }
-      const c = document.createElement("canvas");
-      c.width = w; c.height = h;
-      c.getContext("2d").drawImage(img, 0, 0, w, h);
-      try { resolve(c.toDataURL("image/jpeg", 0.85)); } catch { resolve(null); }
-    };
-    img.onerror = () => resolve(null);
-    img.src = dataUrl;
-  });
-}
-// ファイルを読み込み、縮小したJPEGのdataURLにして返す。
-function fileToJpeg(file) {
-  return new Promise(resolve => {
-    const fr = new FileReader();
-    fr.onload = async () => {
-      const out = await ensureJpeg(fr.result);
-      resolve(out || fr.result);
-    };
-    fr.onerror = () => resolve(null);
-    fr.readAsDataURL(file);
-  });
-}
 
 let state = load();
 let currentCatId = null;
@@ -215,6 +71,7 @@ function render() {
   bindList();
 }
 
+// ===== APIキー画面 =====
 function apiKeyView() {
   return `
     <div style="min-height:100vh;background:${C.bg};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
@@ -246,15 +103,12 @@ function listView() {
   return `
     <div style="min-height:100vh;background:${C.bg};display:flex;flex-direction:column;">
       <div style="background:white;padding:52px 20px 18px;position:sticky;top:0;z-index:10;border-bottom:1px solid ${C.border};box-shadow:${C.shadowSm};">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:22px;">🛍️</span>
-            <div>
-              <h1 style="font-size:22px;font-weight:800;color:${C.text};letter-spacing:0.06em;">KuraBe</h1>
-              <p style="font-size:11px;color:${C.accent};font-weight:500;letter-spacing:0.08em;">✦ 買い物上手の比較メモ ✦</p>
-            </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:22px;">🛍️</span>
+          <div>
+            <h1 style="font-size:22px;font-weight:800;color:${C.text};letter-spacing:0.06em;">KuraBe</h1>
+            <p style="font-size:11px;color:${C.accent};font-weight:500;letter-spacing:0.08em;">✦ 迷う時間を、ときめく時間に ✦</p>
           </div>
-          ${state.categories.length > 0 ? `<button id="btn-export" style="background:${C.accent};color:white;border:none;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.05em;">書き出し</button>` : ""}
         </div>
       </div>
       <div style="flex:1;padding:20px 16px 120px;">
@@ -332,7 +186,6 @@ function bindList() {
   document.getElementById("modal-ok")?.addEventListener("click", doAdd);
   document.getElementById("modal")?.addEventListener("click", e => { if (e.target === document.getElementById("modal")) hideModal(); });
   document.getElementById("modal-input")?.addEventListener("keydown", e => { if (e.key === "Enter") doAdd(); });
-  document.getElementById("btn-export")?.addEventListener("click", exportData);
   document.querySelectorAll(".btn-select").forEach(btn => {
     btn.addEventListener("click", () => { currentCatId = btn.dataset.id; aiResult = null; aiWinner = null; render(); });
   });
@@ -355,10 +208,12 @@ function compareView(cat) {
           <button id="btn-back" style="width:36px;height:36px;border-radius:12px;border:1.5px solid ${C.border};background:${C.accentLight};display:flex;align-items:center;justify-content:center;color:${C.textMuted};flex-shrink:0;">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 3.5L5.5 9 11 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <div>
-            <h2 style="font-size:16px;font-weight:800;color:${C.text};">${escHtml(cat.name)}</h2>
+          <div style="flex:1;min-width:0;">
+            <h2 style="font-size:16px;font-weight:800;color:${C.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(cat.name)}</h2>
             <p style="font-size:11px;color:${C.accent};font-weight:500;">${cat.items.length}件の候補を比較中</p>
           </div>
+          ${cat.items.length > 0 ? `<button id="btn-share" style="background:${C.accentLight};color:${C.accentDark};border:1.5px solid ${C.accentBorder};border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;flex-shrink:0;">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v9M8 1.5L5 4.5M8 1.5l3 3M3 8v5.5a1 1 0 001 1h8a1 1 0 001-1V8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>共有</button>` : ""}
         </div>
       </div>
 
@@ -377,55 +232,60 @@ function compareView(cat) {
         </div>
       ` : ""}
 
-      <div style="flex:1;padding-top:20px;padding-bottom:140px;">
+      <div style="flex:1;padding-top:20px;padding-bottom:120px;">
         ${cat.items.length === 0 ? `
           <button id="btn-add-empty-detail" style="background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:80px;gap:12px;width:100%;cursor:pointer;">
             <span style="font-size:44px;">📸</span>
             <p style="font-size:14px;color:${C.accent};font-weight:600;">候補を追加してみて</p>
           </button>
         ` : `
-          <div style="display:flex;gap:14px;padding:4px 16px 16px;overflow-x:auto;scroll-snap-type:x mandatory;">
+          <div style="display:flex;gap:14px;padding:4px 16px 16px;overflow-x:auto;scroll-snap-type:x mandatory;align-items:stretch;">
             ${cat.items.map(item => productCard(item)).join("")}
+            <button id="btn-add-item-inline" style="flex-shrink:0;width:104px;min-height:320px;align-self:stretch;border-radius:20px;border:2px dashed ${C.accentBorder};background:${C.accentLight};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:${C.accentDark};scroll-snap-align:start;">
+              <span style="width:46px;height:46px;border-radius:50%;background:white;border:1.5px solid ${C.accentBorder};display:flex;align-items:center;justify-content:center;box-shadow:${C.shadowSm};">
+                <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+              </span>
+              <span style="font-size:12px;font-weight:700;">候補を追加</span>
+            </button>
           </div>
         `}
       </div>
 
-      <div style="position:fixed;bottom:0;left:0;right:0;padding:16px 16px 32px;background:linear-gradient(to top,rgba(255,241,243,1) 70%,rgba(255,241,243,0));display:flex;gap:10px;align-items:flex-end;">
-        <button id="btn-ask-ai" style="flex:1;padding:15px 0;border-radius:16px;border:none;background:${canAsk ? `linear-gradient(135deg,${C.accent},${C.accentDark})` : C.accentBorder};color:white;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:${canAsk ? `0 6px 18px rgba(219,39,119,0.35)` : "none"};letter-spacing:0.04em;" ${canAsk ? "" : "disabled"}>
+      <div style="position:fixed;bottom:0;left:0;right:0;padding:16px 16px 32px;background:linear-gradient(to top,rgba(255,241,243,1) 70%,rgba(255,241,243,0));">
+        <button id="btn-ask-ai" style="width:100%;padding:15px 0;border-radius:16px;border:none;background:${canAsk ? `linear-gradient(135deg,${C.accent},${C.accentDark})` : C.accentBorder};color:white;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:${canAsk ? `0 6px 18px rgba(219,39,119,0.35)` : "none"};letter-spacing:0.04em;" ${canAsk ? "" : "disabled"}>
           ${aiLoading
             ? `<span style="font-size:16px;">⏳</span> AIが考え中…`
             : `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.05 3.05l2.12 2.12M10.83 10.83l2.12 2.12M10.83 5.17l2.12-2.12M3.05 12.95l2.12-2.12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="8" r="2" fill="currentColor" opacity="0.3"/></svg> AIに聞く`}
-        </button>
-        <button id="btn-add-item" style="width:52px;height:52px;border-radius:50%;border:1.5px solid ${C.accentBorder};background:white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(244,114,182,0.2);color:${C.accent};flex-shrink:0;">
-          <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
         </button>
       </div>
     </div>
   `;
 }
 
+// カードは「写真＋コメント」だけの一体型
 function productCard(item) {
   const isWinner = !!aiWinner && item.id === aiWinner;
-  const photo = item.photo
-    ? `<img src="${item.photo}" alt="" style="width:100%;height:100%;object-fit:cover;">`
-    : `<div style="display:flex;flex-direction:column;align-items:center;gap:8px;color:${C.accentBorder};">
+  const hasPhoto = !!item.photo;
+  const photoInner = hasPhoto
+    ? `<img src="${item.photo}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+       <div style="position:absolute;top:8px;right:8px;display:flex;gap:6px;">
+         <button class="btn-photo-edit" data-id="${item.id}" style="background:rgba(255,255,255,0.92);border:none;border-radius:99px;padding:5px 10px;font-size:11px;font-weight:700;color:${C.accentDark};box-shadow:0 1px 4px rgba(0,0,0,0.15);">編集</button>
+         <button class="btn-photo-replace" data-id="${item.id}" style="background:rgba(255,255,255,0.92);border:none;border-radius:99px;padding:5px 10px;font-size:11px;font-weight:700;color:${C.accentDark};box-shadow:0 1px 4px rgba(0,0,0,0.15);">変更</button>
+       </div>`
+    : `<div style="display:flex;flex-direction:column;align-items:center;gap:8px;color:${C.accentBorder};pointer-events:none;">
         <svg width="32" height="32" viewBox="0 0 28 28" fill="none"><path d="M4 9h2.5l2-3h7l2 3H22a2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V11a2 2 0 012-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="14" cy="16" r="4" stroke="currentColor" stroke-width="1.5"/></svg>
         <span style="font-size:11px;font-weight:500;color:${C.accent};">タップして写真を追加</span>
        </div>`;
   return `
     <div class="product-card" style="background:white;border-radius:20px;box-shadow:${isWinner ? `0 6px 24px rgba(219,39,119,0.22)` : C.shadowSm};border:${isWinner ? `2px solid ${C.accent}` : `1px solid ${C.border}`};flex-shrink:0;width:220px;overflow:hidden;display:flex;flex-direction:column;scroll-snap-align:start;position:relative;">
       ${isWinner ? `<div style="position:absolute;top:10px;left:10px;z-index:5;background:linear-gradient(135deg,${C.accent},${C.accentDark});color:white;font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px;box-shadow:0 2px 8px rgba(219,39,119,0.3);">✨ AIのおすすめ</div>` : ""}
-      <button class="btn-photo" data-id="${item.id}" style="width:100%;height:160px;background:${C.accentLight};border:none;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-        ${photo}
-        <input type="file" accept="image/*" class="file-input" data-id="${item.id}" style="display:none;">
+      <button class="btn-photo-area" data-id="${item.id}" data-has="${hasPhoto ? "1" : "0"}" style="width:100%;height:200px;background:${C.accentLight};border:none;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;padding:0;">
+        ${photoInner}
       </button>
-      <div style="padding:12px 14px 4px;">
-        <input type="text" class="item-name" data-id="${item.id}" value="${escAttr(item.name)}" placeholder="商品名"
-          style="width:100%;font-size:13px;font-weight:700;color:${C.text};border:none;border-bottom:1.5px solid ${C.border};padding-bottom:6px;outline:none;background:none;">
-      </div>
-      <div style="padding:8px 14px 10px;flex:1;">
-        <textarea class="item-memo" data-id="${item.id}" rows="4" placeholder="価格・気になる点・感想&#10;自由に書いてね"
-          style="width:100%;font-size:12px;color:#9D174D;resize:none;outline:none;border:none;background:none;line-height:1.7;">${escHtml(item.memo)}</textarea>
+      <input type="file" accept="image/*" class="file-input" data-id="${item.id}" style="display:none;">
+      <div style="padding:12px 14px 8px;flex:1;display:flex;">
+        <textarea class="item-memo" data-id="${item.id}" rows="4" placeholder="コメントを自由に書いてね&#10;（価格・気になる点・感想など）"
+          style="width:100%;font-size:13px;color:#9D174D;resize:none;outline:none;border:none;background:none;line-height:1.7;">${escHtml(item.memo)}</textarea>
       </div>
       <div style="padding:0 14px 14px;">
         <button class="btn-del-item" data-id="${item.id}" style="width:100%;padding:8px;border-radius:12px;border:1px solid ${C.border};background:none;color:${C.accentBorder};font-size:11px;display:flex;align-items:center;justify-content:center;gap:6px;">
@@ -440,93 +300,56 @@ function productCard(item) {
 function bindCompare(cat) {
   document.getElementById("btn-back")?.addEventListener("click", () => { currentCatId = null; aiResult = null; aiWinner = null; render(); });
   document.getElementById("btn-close-ai")?.addEventListener("click", () => { aiResult = null; aiWinner = null; render(); });
+  document.getElementById("btn-share")?.addEventListener("click", () => shareCategory(cat));
 
   const doAddItem = () => {
-    cat.items.push({ id: uid(), name: "", photo: null, memo: "" });
+    cat.items.push({ id: uid(), photo: null, memo: "" });
     save(state); render();
   };
-  document.getElementById("btn-add-item")?.addEventListener("click", doAddItem);
+  document.getElementById("btn-add-item-inline")?.addEventListener("click", doAddItem);
   document.getElementById("btn-add-empty-detail")?.addEventListener("click", doAddItem);
 
-  document.getElementById("btn-ask-ai")?.addEventListener("click", async () => {
-    if (cat.items.length < 2 || aiLoading) return;
-    aiLoading = true; aiResult = null; aiWinner = null; render();
-    try {
-      const parts = [{
-        type: "text",
-        text: `「${cat.name}」で以下の${cat.items.length}つの候補を比較しています。各候補には番号（1〜${cat.items.length}）が付いていて、その直後にメモ、続けて写真が並んでいます。番号・メモ・写真の対応をよく確認して、どれが一番おすすめか選んでください。\n\n回答は必ず次の形式で書いてください。\n\nWINNER:（おすすめする候補の番号を半角数字で1つだけ）\n①おすすめ候補の名前\n②理由（2〜3行）\n③各候補の評価（番号ごとに◎○△で）\n\n1行目のWINNER:の番号と、①で挙げる名前は必ず同じ候補を指すこと。20〜30代女性目線で率直に答えてね。`
-      }];
-      for (let i = 0; i < cat.items.length; i++) {
-        const item = cat.items[i];
-        const label = item.name || `（名前未記入）`;
-        parts.push({ type: "text", text: `\n\n【候補${i + 1}：${label}】\nメモ：${item.memo || "（記入なし）"}\n↓この候補${i + 1}の写真：` });
-        if (item.photo) {
-          const match = item.photo.match(/^data:([^;]+);base64,(.+)$/);
-          if (match) parts.push({ type: "image", source: { type: "base64", media_type: match[1], data: match[2] } });
-        } else {
-          parts.push({ type: "text", text: "（写真なし）" });
-        }
-      }
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": getApiKey(),
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true"
-        },
-        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, messages: [{ role: "user", content: parts }] })
-      });
-      const data = await resp.json();
-      if (!resp.ok || data.error) {
-        const msg = data.error?.message || "";
-        if (resp.status === 401 || /x-api-key|authentication/i.test(msg)) {
-          aiLoading = false;
-          alert("APIキーが無効だよ。新しいキーを設定し直してね。");
-          localStorage.removeItem("kurabe_api_key");
-          render();
-          return;
-        }
-        if (resp.status === 429) {
-          aiResult = "今アクセスが混み合ってるみたい。少し待ってもう一度試してね。";
-        } else {
-          aiResult = "AIエラー（" + resp.status + "）：" + (msg || "もう一度試してみてね。");
-        }
-      } else {
-        aiResult = data.content?.map(b => b.text || "").join("") || "判定できませんでした";
-        const m = aiResult.match(/WINNER:\s*(\d+)/i);
-        if (m) {
-          const idx = parseInt(m[1], 10) - 1;
-          if (cat.items[idx]) aiWinner = cat.items[idx].id;
-        }
-        aiResult = aiResult.replace(/WINNER:\s*\d+\s*\n?/i, "").trim();
-      }
-    } catch (e) {
-      aiResult = "通信エラーが発生したよ。電波の良いところでもう一度試してね。";
-    }
-    aiLoading = false; render();
-  });
+  document.getElementById("btn-ask-ai")?.addEventListener("click", () => askAi(cat));
 
-  document.querySelectorAll(".btn-photo").forEach(btn => {
-    btn.addEventListener("click", () => btn.querySelector(".file-input").click());
+  // 写真：未設定エリアのタップ → ファイル選択
+  document.querySelectorAll(".btn-photo-area").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.has === "1") return; // 写真ありのときは編集/変更ボタンで操作
+      triggerFile(btn.dataset.id);
+    });
   });
+  // 変更：別の写真を選び直す
+  document.querySelectorAll(".btn-photo-replace").forEach(btn => {
+    btn.addEventListener("click", e => { e.stopPropagation(); triggerFile(btn.dataset.id); });
+  });
+  // 編集：いまの写真をトリミング・回転
+  document.querySelectorAll(".btn-photo-edit").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const item = cat.items.find(i => i.id === btn.dataset.id);
+      if (item && item.photo) {
+        openPhotoEditor(item.photo, out => {
+          if (out) { item.photo = out; save(state); render(); }
+        });
+      }
+    });
+  });
+  // ファイル選択 → エディタを開く
   document.querySelectorAll(".file-input").forEach(input => {
     input.addEventListener("change", e => {
       const f = e.target.files?.[0]; if (!f) return;
       const r = new FileReader();
       r.onload = ev => {
-        const item = cat.items.find(i => i.id === input.dataset.id);
-        if (item) { item.photo = ev.target.result; save(state); render(); }
+        openPhotoEditor(ev.target.result, out => {
+          const item = cat.items.find(i => i.id === input.dataset.id);
+          if (item && out) { item.photo = out; save(state); render(); }
+        });
       };
       r.readAsDataURL(f);
+      e.target.value = "";
     });
   });
-  document.querySelectorAll(".item-name").forEach(input => {
-    input.addEventListener("input", e => {
-      const item = cat.items.find(i => i.id === input.dataset.id);
-      if (item) { item.name = e.target.value; save(state); }
-    });
-  });
+
   document.querySelectorAll(".item-memo").forEach(ta => {
     ta.addEventListener("input", e => {
       const item = cat.items.find(i => i.id === ta.dataset.id);
@@ -539,6 +362,345 @@ function bindCompare(cat) {
       save(state); render();
     });
   });
+}
+
+function triggerFile(id) {
+  const input = document.querySelector(`.file-input[data-id="${id}"]`);
+  if (input) input.click();
+}
+
+// ===== AIに聞く =====
+async function askAi(cat) {
+  if (cat.items.length < 2 || aiLoading) return;
+  aiLoading = true; aiResult = null; aiWinner = null; render();
+  try {
+    const parts = [{
+      type: "text",
+      text: `「${cat.name}」で以下の${cat.items.length}つの候補を比較しています。各候補には番号（1〜${cat.items.length}）が付いていて、その直後にコメント、続けて写真が並んでいます。番号・コメント・写真の対応をよく確認して、どれが一番おすすめか選んでください。\n\n回答は必ず次の形式で書いてください。\n\nWINNER:（おすすめする候補の番号を半角数字で1つだけ）\n①おすすめする候補（番号と、写真やコメントから分かる特徴をひと言）\n②理由（2〜3行）\n③各候補の評価（番号ごとに◎○△で）\n\n1行目のWINNER:の番号と、①で挙げる候補は必ず同じものを指すこと。20〜30代女性目線で率直に答えてね。`
+    }];
+    for (let i = 0; i < cat.items.length; i++) {
+      const item = cat.items[i];
+      parts.push({ type: "text", text: `\n\n【候補${i + 1}】\nコメント：${item.memo || "（記入なし）"}\n↓この候補${i + 1}の写真：` });
+      if (item.photo) {
+        const match = item.photo.match(/^data:([^;]+);base64,(.+)$/);
+        if (match) parts.push({ type: "image", source: { type: "base64", media_type: match[1], data: match[2] } });
+      } else {
+        parts.push({ type: "text", text: "（写真なし）" });
+      }
+    }
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": getApiKey(),
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, messages: [{ role: "user", content: parts }] })
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.error) {
+      const msg = data.error?.message || "";
+      if (resp.status === 401 || /x-api-key|authentication/i.test(msg)) {
+        aiLoading = false;
+        alert("APIキーが無効だよ。新しいキーを設定し直してね。");
+        localStorage.removeItem("kurabe_ai_api_key");
+        render();
+        return;
+      }
+      if (resp.status === 429) {
+        aiResult = "今アクセスが混み合ってるみたい。少し待ってもう一度試してね。";
+      } else {
+        aiResult = "AIエラー（" + resp.status + "）：" + (msg || "もう一度試してみてね。");
+      }
+    } else {
+      aiResult = data.content?.map(b => b.text || "").join("") || "判定できませんでした";
+      const m = aiResult.match(/WINNER:\s*(\d+)/i);
+      if (m) {
+        const idx = parseInt(m[1], 10) - 1;
+        if (cat.items[idx]) aiWinner = cat.items[idx].id;
+      }
+      aiResult = aiResult.replace(/WINNER:\s*\d+\s*\n?/i, "").trim();
+    }
+  } catch (e) {
+    aiResult = "通信エラーが発生したよ。電波の良いところでもう一度試してね。";
+  }
+  aiLoading = false; render();
+}
+
+// ===== 写真エディタ（トリミング・回転）=====
+function openPhotoEditor(src, onDone) {
+  let baseSrc = src;
+  const overlay = document.createElement("div");
+  overlay.id = "photo-editor";
+  overlay.style.cssText = "position:fixed;inset:0;z-index:100;background:rgba(131,24,67,0.6);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;";
+  overlay.innerHTML = `
+    <div style="color:white;font-size:13px;font-weight:700;margin-bottom:12px;text-align:center;line-height:1.5;">写真を整える<br><span style="font-size:11px;opacity:0.85;font-weight:500;">枠を動かす・右下の丸でサイズ変更</span></div>
+    <div id="pe-stage" style="position:relative;display:inline-block;line-height:0;touch-action:none;">
+      <img id="pe-img" style="display:block;max-width:88vw;max-height:54vh;-webkit-user-select:none;user-select:none;-webkit-user-drag:none;" draggable="false">
+      <div id="pe-crop" style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);box-sizing:border-box;touch-action:none;cursor:move;">
+        <div id="pe-handle" style="position:absolute;right:-13px;bottom:-13px;width:28px;height:28px;border-radius:50%;background:${C.accent};border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.3);touch-action:none;"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:18px;">
+      <button id="pe-rot-l" style="padding:10px 16px;border-radius:14px;border:none;background:rgba(255,255,255,0.92);color:${C.accentDark};font-size:13px;font-weight:700;">⟲ 左回転</button>
+      <button id="pe-rot-r" style="padding:10px 16px;border-radius:14px;border:none;background:rgba(255,255,255,0.92);color:${C.accentDark};font-size:13px;font-weight:700;">右回転 ⟳</button>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px;width:100%;max-width:360px;">
+      <button id="pe-cancel" style="flex:1;padding:14px;border-radius:16px;border:1.5px solid rgba(255,255,255,0.6);background:transparent;color:white;font-size:14px;font-weight:600;">キャンセル</button>
+      <button id="pe-apply" style="flex:1;padding:14px;border-radius:16px;border:none;background:linear-gradient(135deg,${C.accent},${C.accentDark});color:white;font-size:14px;font-weight:800;">適用する</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const img = overlay.querySelector("#pe-img");
+  const crop = overlay.querySelector("#pe-crop");
+  const handle = overlay.querySelector("#pe-handle");
+  let iw = 0, ih = 0;
+  const box = { x: 0, y: 0, w: 0, h: 0 };
+
+  function applyBox() {
+    crop.style.left = box.x + "px";
+    crop.style.top = box.y + "px";
+    crop.style.width = box.w + "px";
+    crop.style.height = box.h + "px";
+  }
+  function resetFull() {
+    iw = img.clientWidth; ih = img.clientHeight;
+    box.x = 0; box.y = 0; box.w = iw; box.h = ih;
+    applyBox();
+  }
+  img.onload = resetFull;
+  img.src = baseSrc;
+
+  let mode = null, start = null;
+  const px = e => ({ x: e.clientX, y: e.clientY });
+  crop.addEventListener("pointerdown", e => {
+    if (e.target === handle) return;
+    mode = "move"; start = { x: e.clientX, y: e.clientY, bx: box.x, by: box.y };
+    crop.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  handle.addEventListener("pointerdown", e => {
+    mode = "resize"; start = { x: e.clientX, y: e.clientY, bw: box.w, bh: box.h };
+    handle.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation();
+  });
+  function onMove(e) {
+    if (!mode) return;
+    const p = px(e);
+    if (mode === "move") {
+      box.x = Math.min(Math.max(0, start.bx + (p.x - start.x)), Math.max(0, iw - box.w));
+      box.y = Math.min(Math.max(0, start.by + (p.y - start.y)), Math.max(0, ih - box.h));
+    } else {
+      box.w = Math.min(Math.max(40, start.bw + (p.x - start.x)), iw - box.x);
+      box.h = Math.min(Math.max(40, start.bh + (p.y - start.y)), ih - box.y);
+    }
+    applyBox();
+  }
+  crop.addEventListener("pointermove", onMove);
+  handle.addEventListener("pointermove", onMove);
+  const endMove = () => { mode = null; };
+  crop.addEventListener("pointerup", endMove);
+  handle.addEventListener("pointerup", endMove);
+  crop.addEventListener("pointercancel", endMove);
+  handle.addEventListener("pointercancel", endMove);
+
+  function rotate(dir) {
+    const im = new Image();
+    im.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = im.height; c.height = im.width;
+      const ctx = c.getContext("2d");
+      ctx.translate(c.width / 2, c.height / 2);
+      ctx.rotate(dir * Math.PI / 2);
+      ctx.drawImage(im, -im.width / 2, -im.height / 2);
+      try { baseSrc = c.toDataURL("image/jpeg", 0.9); } catch (_) {}
+      img.src = baseSrc; // onload で枠リセット
+    };
+    im.src = baseSrc;
+  }
+  overlay.querySelector("#pe-rot-l").onclick = () => rotate(-1);
+  overlay.querySelector("#pe-rot-r").onclick = () => rotate(1);
+
+  const close = () => overlay.remove();
+  overlay.querySelector("#pe-cancel").onclick = () => { close(); onDone(null); };
+  overlay.querySelector("#pe-apply").onclick = () => {
+    const scale = img.naturalWidth / img.clientWidth;
+    const sx = box.x * scale, sy = box.y * scale, sw = box.w * scale, sh = box.h * scale;
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(sw));
+    c.height = Math.max(1, Math.round(sh));
+    c.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+    let out;
+    try { out = c.toDataURL("image/jpeg", 0.85); } catch (_) { out = baseSrc; }
+    close(); onDone(out);
+  };
+}
+
+// ===== 共有（カテゴリ1つを1枚の画像にして Web Share）=====
+function loadImg(src) {
+  return new Promise(res => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = () => res(null);
+    i.src = src;
+  });
+}
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+}
+function drawCover(ctx, img, x, y, w, h, r) {
+  ctx.save();
+  roundRect(ctx, x, y, w, h, r);
+  ctx.clip();
+  if (img) {
+    const ar = img.width / img.height, tr = w / h;
+    let dw, dh;
+    if (ar > tr) { dh = h; dw = h * ar; } else { dw = w; dh = w / ar; }
+    ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  } else {
+    ctx.fillStyle = "#FCE7F3";
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = "#F9A8D4";
+    ctx.font = "14px -apple-system, 'Hiragino Sans', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("写真なし", x + w / 2, y + h / 2);
+    ctx.textAlign = "left";
+  }
+  ctx.restore();
+}
+function wrapLines(ctx, text, maxW, maxLines) {
+  const lines = [];
+  let line = "";
+  for (const ch of String(text || "")) {
+    if (ch === "\n") { lines.push(line); line = ""; if (lines.length >= maxLines) break; continue; }
+    if (ctx.measureText(line + ch).width > maxW) {
+      lines.push(line); line = ch;
+      if (lines.length >= maxLines) break;
+    } else { line += ch; }
+  }
+  if (lines.length < maxLines) lines.push(line);
+  const out = lines.slice(0, maxLines);
+  if (out.length === maxLines) {
+    const consumed = out.join("").replace(/\n/g, "").length;
+    const total = String(text || "").replace(/\n/g, "").length;
+    if (consumed < total) {
+      let last = out[maxLines - 1];
+      while (last && ctx.measureText(last + "…").width > maxW) last = last.slice(0, -1);
+      out[maxLines - 1] = last + "…";
+    }
+  }
+  return out;
+}
+
+async function buildShareCanvas(cat) {
+  const items = cat.items;
+  const imgs = await Promise.all(items.map(it => it.photo ? loadImg(it.photo) : Promise.resolve(null)));
+  const W = 720, PAD = 36, THUMB = 200, GAP = 18, CARD_P = 18;
+  const headerH = 116;
+  const cardH = THUMB + CARD_P * 2;
+  const bodyH = (items.length ? items.length * (cardH + GAP) : 120);
+  const totalH = headerH + bodyH + 44;
+
+  const canvas = document.createElement("canvas");
+  const DPR = 2;
+  canvas.width = W * DPR; canvas.height = totalH * DPR;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(DPR, DPR);
+  ctx.textBaseline = "alphabetic";
+
+  const grad = ctx.createLinearGradient(0, 0, 0, totalH);
+  grad.addColorStop(0, "#FFF1F3");
+  grad.addColorStop(1, "#FDF2F8");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, totalH);
+
+  ctx.fillStyle = C.accent;
+  roundRect(ctx, PAD, 32, W - PAD * 2, 64, 18); ctx.fill();
+  ctx.fillStyle = "white";
+  ctx.font = "bold 26px -apple-system, 'Hiragino Sans', sans-serif";
+  ctx.fillText("🛍 KuraBe", PAD + 22, 64);
+  ctx.font = "15px -apple-system, 'Hiragino Sans', sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.92)";
+  const title = wrapLines(ctx, cat.name, W - PAD * 2 - 200, 1)[0];
+  ctx.textAlign = "right";
+  ctx.fillText(title, W - PAD - 22, 64);
+  ctx.textAlign = "left";
+
+  let y = headerH;
+  if (items.length === 0) {
+    ctx.fillStyle = "#F9A8D4";
+    ctx.font = "16px -apple-system, 'Hiragino Sans', sans-serif";
+    ctx.fillText("候補がありません", PAD, y + 40);
+  }
+
+  items.forEach((it, i) => {
+    const win = aiWinner && it.id === aiWinner;
+    ctx.save();
+    ctx.shadowColor = "rgba(244,114,182,0.14)";
+    ctx.shadowBlur = 16; ctx.shadowOffsetY = 4;
+    ctx.fillStyle = "white";
+    roundRect(ctx, PAD, y, W - PAD * 2, cardH, 18); ctx.fill();
+    ctx.restore();
+    if (win) {
+      ctx.strokeStyle = C.accent; ctx.lineWidth = 2.5;
+      roundRect(ctx, PAD, y, W - PAD * 2, cardH, 18); ctx.stroke();
+    }
+
+    const tx = PAD + CARD_P, ty = y + CARD_P;
+    drawCover(ctx, imgs[i], tx, ty, THUMB, THUMB, 14);
+
+    const rx = tx + THUMB + 20;
+    const rw = W - PAD - CARD_P - rx;
+    let ry = ty + 10;
+    if (win) {
+      ctx.fillStyle = C.accent;
+      roundRect(ctx, rx, ry - 4, 116, 24, 99); ctx.fill();
+      ctx.fillStyle = "white";
+      ctx.font = "bold 12px -apple-system, 'Hiragino Sans', sans-serif";
+      ctx.fillText("✨ AIのおすすめ", rx + 10, ry + 13);
+      ry += 38;
+    }
+    ctx.fillStyle = C.text;
+    ctx.font = "bold 17px -apple-system, 'Hiragino Sans', sans-serif";
+    const numLabel = "候補 " + (i + 1);
+    ctx.fillText(numLabel, rx, ry + 14); ry += 32;
+    ctx.fillStyle = C.textMuted;
+    ctx.font = "16px -apple-system, 'Hiragino Sans', sans-serif";
+    const memoMax = (ty + THUMB) - ry - 4;
+    const memoLines = wrapLines(ctx, it.memo || "（コメントなし）", rw, Math.max(1, Math.floor(memoMax / 26)));
+    memoLines.forEach(l => { ry += 26; ctx.fillText(l, rx, ry); });
+
+    y += cardH + GAP;
+  });
+
+  ctx.fillStyle = "#F9A8D4";
+  ctx.font = "12px -apple-system, 'Hiragino Sans', sans-serif";
+  ctx.fillText("KuraBe — 迷う時間を、ときめく時間に", PAD, totalH - 16);
+
+  return canvas;
+}
+
+async function shareCategory(cat) {
+  let canvas;
+  try { canvas = await buildShareCanvas(cat); }
+  catch (e) { alert("画像の作成でエラーが出たよ。もう一度試してね。"); return; }
+  canvas.toBlob(async blob => {
+    if (!blob) { alert("画像の作成に失敗したよ。"); return; }
+    const fileName = `kurabe_${(cat.name || "比較").replace(/[\\/:*?"<>|]/g, "_")}.png`;
+    const file = new File([blob], fileName, { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: cat.name, text: `${cat.name}の比較メモ ✦ KuraBe` });
+      } catch (e) { /* ユーザーがキャンセル */ }
+    } else {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+  }, "image/png");
 }
 
 function escHtml(s) {
