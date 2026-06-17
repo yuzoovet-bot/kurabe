@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>成長ノート（仮）</title>
+<style>
+  :root{
+    --blue:#00A0E9; --navy:#0E5E86;
+    --ink:#1b2733; --sub:#5a6b78; --hint:#8a98a3;
+    --line:#e6ecf0; --bg:#f4f8fb; --card:#ffffff;
+    --joy:#0F6E56; --joybg:#E1F5EE; --calm:#185FA5; --calmbg:#E6F1FB;
+    --reg:#854F0B; --regbg:#FAEEDA; --soft:#5F5E5A; --softbg:#F1EFE8;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:440px; margin:0 auto; min-height:100vh; position:relative; padding-bottom:76px;}
+
+  .hd{background:var(--navy); color:#fff; padding:16px 18px 18px; border-radius:0 0 20px 20px;}
+  .hd .row{display:flex; align-items:center; justify-content:space-between;}
+  .brand{font-size:13px; color:#cfe6f4; display:flex; align-items:center; gap:6px;}
+  .tenure{font-size:12px; color:#9ec9e2; background:rgba(255,255,255,.12); padding:3px 10px; border-radius:11px; display:flex; align-items:center; gap:5px;}
+  .h-title{font-size:21px; font-weight:600; margin-top:10px; letter-spacing:.02em;}
+  .h-date{font-size:13px; color:#9ec9e2; margin-top:2px;}
+  .paw{width:16px; height:16px; display:inline-block; vertical-align:-3px;}
+
+  .body{padding:16px 14px;}
+  .screen{display:none;} .screen.active{display:block;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 14px 12px; margin-bottom:13px; transition:box-shadow .2s;}
+  .card:focus-within{box-shadow:0 0 0 3px rgba(0,160,233,.16); border-color:var(--blue);}
+  .lab{font-size:13.5px; color:var(--sub); margin-bottom:7px; display:flex; align-items:center; justify-content:space-between;}
+  .lab .opt{font-size:12px; color:var(--hint);}
+  .ta{width:100%; border:none; outline:none; resize:none; font:inherit; font-size:15px; color:var(--ink); background:transparent; min-height:24px; line-height:1.55;}
+  .ta::placeholder{color:#b8c4cc;}
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:11px;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:3px;}
+  .chip{font-size:13.5px; padding:7px 13px; border-radius:18px; background:#f1f5f8; color:var(--sub);
+    border:1.5px solid transparent; cursor:pointer; transition:transform .12s, background .2s, color .2s, border-color .2s; position:relative;}
+  .chip:active{transform:scale(.92);}
+  .chip.on{transform:translateY(-1px);}
+  .chip.on.joy{background:var(--joybg); color:var(--joy); border-color:#5dcaa5;}
+  .chip.on.calm{background:var(--calmbg); color:var(--calm); border-color:#85b7eb;}
+  .chip.on.reg{background:var(--regbg); color:var(--reg); border-color:#ef9f27;}
+  .chip.on.soft{background:var(--softbg); color:var(--soft); border-color:#b4b2a9;}
+  .chip.on.sel{background:#e6f5fd; color:#0883bf; border-color:var(--blue);}
+
+  .score{display:flex; gap:8px;}
+  .score .s{flex:1; text-align:center; padding:9px 0; border:1.5px solid var(--line); border-radius:12px; font-size:16px; font-weight:600; color:var(--sub); cursor:pointer;}
+  .score .s.on{background:#e6f5fd; color:#0883bf; border-color:var(--blue);}
+  .score-hint{font-size:11.5px; color:var(--hint); display:flex; justify-content:space-between; margin-top:5px;}
+
+  .dg{background:#eef6fb; border:1px solid #d7e8f3; border-radius:14px; padding:12px 13px; margin-bottom:14px;}
+  .dg .t{font-size:12.5px; color:var(--navy); font-weight:600; margin-bottom:7px; display:flex; align-items:center; gap:5px;}
+  .dg .r{font-size:13px; color:var(--ink); margin:3px 0;}
+  .dg .r b{font-weight:600;}
+  .dg .mini{font-size:12px; color:var(--sub); margin:2px 0 2px 4px;}
+  .dg .none{font-size:12.5px; color:var(--hint);}
+
+  .submit{width:100%; border:none; background:var(--blue); color:#fff; font:inherit; font-size:16px; font-weight:600; padding:14px; border-radius:14px; cursor:pointer; transition:transform .12s, background .2s; letter-spacing:.03em;}
+  .submit:active{transform:scale(.98); background:#0090d4;}
+  .note{text-align:center; font-size:12px; color:var(--hint); margin:9px 0 4px;}
+  .intro{font-size:13px; color:var(--sub); margin:0 4px 12px;}
+
+  .hsec{margin-top:18px;}
+  .hsec h3{font-size:14px; color:var(--sub); font-weight:600; margin:0 4px 9px;}
+  .hitem{background:var(--card); border:1px solid var(--line); border-radius:13px; padding:11px 13px; margin-bottom:9px; cursor:pointer;}
+  .hitem .hd2{display:flex; align-items:center; justify-content:space-between;}
+  .hitem .d{font-size:13.5px; color:var(--ink); font-weight:600;}
+  .hitem .m{font-size:12px; color:var(--hint);}
+  .hitem .body2{display:none; margin-top:8px; font-size:13.5px; color:var(--sub); border-top:1px solid var(--line); padding-top:8px;}
+  .hitem.open .body2{display:block;}
+  .empty{text-align:center; color:var(--hint); font-size:13px; padding:18px;}
+
+  .stat{display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:14px;}
+  .stat .b{background:#fff; border:1px solid var(--line); border-radius:14px; padding:13px;}
+  .stat .b .n{font-size:24px; font-weight:600; color:var(--navy);}
+  .stat .b .l{font-size:12px; color:var(--sub);}
+  .bar{display:flex; align-items:center; gap:8px; margin:6px 0; font-size:13px;}
+  .bar .nm{width:74px; color:var(--sub); flex:none;}
+  .bar .tr{flex:1; height:10px; background:#eef2f5; border-radius:6px; overflow:hidden;}
+  .bar .fl{height:100%; background:var(--blue); border-radius:6px;}
+  .bar .ct{width:26px; text-align:right; color:var(--hint); flex:none;}
+
+  .tab{position:fixed; left:0; right:0; bottom:0; max-width:440px; margin:0 auto; background:#fff; border-top:1px solid var(--line); display:flex; padding:6px 0 8px;}
+  .tab a{flex:1; text-align:center; color:var(--hint); font-size:11.5px; text-decoration:none; cursor:pointer;}
+  .tab a.on{color:var(--blue);}
+  .tab a svg{display:block; margin:0 auto 2px; width:23px; height:23px;}
+
+  .ov{position:fixed; inset:0; background:rgba(14,94,134,.34); display:none; align-items:center; justify-content:center; z-index:30;}
+  .ov.show{display:flex; animation:fade .25s;}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .cele{background:#fff; border-radius:20px; padding:26px 24px; width:282px; text-align:center; transform:scale(.85); animation:pop .35s forwards;}
+  @keyframes pop{to{transform:scale(1)}}
+  .cele .big{width:60px; height:60px; margin:0 auto 10px;}
+  .cele .msg{font-size:15.5px; color:var(--ink); margin-bottom:4px; font-weight:600;}
+  .cele .sub2{font-size:13px; color:var(--sub); margin-bottom:16px;}
+  .cele button{border:none; background:var(--blue); color:#fff; font:inherit; font-size:14px; font-weight:600; padding:10px 22px; border-radius:11px; cursor:pointer;}
+  .hgear{background:rgba(255,255,255,.14); border:none; color:#cfe6f4; width:28px; height:28px; border-radius:9px; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+  .topfix{margin-bottom:14px;}
+  .values{background:#f3f0fb; border:1px solid #e0d8f5; border-radius:14px; padding:11px 13px; margin-bottom:11px;}
+  .values .vhead{display:flex; align-items:center; justify-content:space-between;}
+  .values .vt{font-size:12px; color:#534AB7; font-weight:600;}
+  .values .vedit{background:none; border:none; color:#7F77DD; cursor:pointer; padding:2px;}
+  .values .vtext{font-size:14px; color:var(--ink); margin-top:3px; line-height:1.55;}
+  .goalc{background:#fff; border:1px solid var(--line); border-radius:14px; padding:11px 13px;}
+  .goalc .gtop{display:flex; align-items:center; justify-content:space-between; margin-bottom:3px;}
+  .goalc .gl{font-size:12px; color:var(--blue); font-weight:600; display:flex; align-items:center; gap:5px;}
+  .goalc .gdue{font-size:11.5px; color:#0883bf; background:#e6f5fd; padding:2px 9px; border-radius:10px;}
+  .goalc .gtext{font-size:15px; color:var(--ink); font-weight:600;}
+  .goalc .gwhy{font-size:12.5px; color:var(--sub); margin-top:3px;}
+  .setl{display:block; font-size:12.5px; color:var(--sub); margin:10px 0 4px;}
+  .seti{width:100%; border:1px solid var(--line); border-radius:10px; padding:9px 11px; font:inherit; font-size:14px; color:var(--ink); outline:none; resize:none;}
+  .seti:focus{border-color:var(--blue);}
+  .vsec{margin-bottom:16px;}
+  .vsec .h{font-size:12px; color:var(--blue); font-weight:600; margin-bottom:5px; display:flex; align-items:center; gap:5px;}
+  .vbox{background:#fff; border:1px solid var(--line); border-radius:14px; padding:13px;}
+  .vbox.vision{background:#f3f0fb; border-color:#e0d8f5;}
+  .vbox .big2{font-size:15px; color:var(--ink); line-height:1.6;}
+  .tl{position:relative; margin:2px 0 0 6px; padding-left:18px;}
+  .tl:before{content:""; position:absolute; left:4px; top:6px; bottom:6px; width:2px; background:#dbe6ee;}
+  .ms{position:relative; margin-bottom:13px;}
+  .ms:last-child{margin-bottom:2px;}
+  .ms .dot{position:absolute; left:-18px; top:3px; width:11px; height:11px; border-radius:50%; background:#cdd9e1; border:2px solid #fff;}
+  .ms.now .dot{background:var(--blue); box-shadow:0 0 0 3px #cdeafb;}
+  .ms .due{font-size:11.5px; color:var(--sub);}
+  .ms.now .due{color:#0883bf; font-weight:600;}
+  .ms .lab2{font-size:14px; color:var(--ink);}
+  .ms.now .lab2{font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hd">
+    <div class="row">
+      <span class="brand">
+        <svg class="paw" viewBox="0 0 24 24" fill="#cfe6f4"><circle cx="6" cy="9" r="2.1"/><circle cx="12" cy="6.5" r="2.3"/><circle cx="18" cy="9" r="2.1"/><path d="M12 11c-3.2 0-5.5 2.3-5.5 4.8 0 2 1.7 3.2 5.5 3.2s5.5-1.2 5.5-3.2C17.5 13.3 15.2 11 12 11z"/></svg>
+        どうぶつ病院京都 成長ノート（仮）
+      </span>
+      <span style="display:flex; align-items:center; gap:8px">
+        <span class="tenure"><span id="tenureTxt">はじめの一歩</span></span>
+        <button class="hgear" id="btnSet" aria-label="設定"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      </span>
+    </div>
+    <div class="h-title" id="scTitle">今日の記録</div>
+    <div class="h-date" id="scDate"></div>
+  </div>
+
+  <div class="body">
+
+    <div class="topfix">
+      <div class="values">
+        <div class="vhead"><span class="vt" id="valName">あなたの大事にしている価値観</span></div>
+        <div class="vtext" id="valText"></div>
+      </div>
+      <div class="goalc">
+        <div class="gtop"><span class="gl"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>いまのフォーカス（直近の節目）</span><span class="gdue" id="goalDue"></span></div>
+        <div class="gtext" id="goalText"></div>
+        <div class="gwhy" id="goalWhy"></div>
+      </div>
+    </div>
+
+    <!-- ===== 日報 ===== -->
+    <div class="screen active" id="sc-daily">
+      <div class="dg" id="pastCard" style="display:none">
+        <div class="t">先週の自分が書いていたこと</div>
+        <div class="r" id="pastQ"></div>
+      </div>
+      <div class="card">
+        <div class="lab">今日やったこと（事実だけ）<span class="opt" data-mic="f1"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#00A0E9" stroke-width="2" style="vertical-align:-4px"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span></div>
+        <textarea class="ta" id="f1" rows="2" placeholder="例：予防診察の補助を3件、初診の問診を1件担当した"></textarea>
+      </div>
+      <div class="two">
+        <div class="card"><div class="lab">できたこと</div><textarea class="ta" id="f2" rows="2" placeholder="小さくてOK"></textarea></div>
+        <div class="card"><div class="lab">つまずき</div><textarea class="ta" id="f3" rows="2" placeholder="責めなくていい"></textarea></div>
+      </div>
+      <div class="card"><div class="lab">明日ためしたいこと（1つ）</div><textarea class="ta" id="f4" rows="2" placeholder="つまずきを踏まえた、小さな一手"></textarea></div>
+      <div class="card">
+        <div class="lab">今日、心が動いた気持ち<span class="opt">任意・いくつでも</span></div>
+        <div class="chips emo" id="chips-d"></div>
+      </div>
+      <button class="submit" data-save="daily">送信する</button>
+      <div class="note">つらい時は書かなくてOK・これは評価には使いません</div>
+      <div class="hsec"><h3>これまでの記録</h3><div id="hist"></div></div>
+    </div>
+
+    <!-- ===== 週報 ===== -->
+    <div class="screen" id="sc-weekly">
+      <div class="intro">まず今週の自分を読み返してから。点を線にする時間。整理できない時は「今は整理中」でOK。</div>
+      <div class="dg" id="dgWeek"></div>
+      <div class="card"><div class="lab">今週の手応え（成長・できた・助けられた場面）</div><textarea class="ta" id="w1" rows="2" placeholder="小さくてOK。1つでいい"></textarea></div>
+      <div class="card"><div class="lab">今週いちばん心が動いた場面</div><textarea class="ta" id="w2" rows="2" placeholder="どんな場面だった？"></textarea>
+        <div class="chips emo" id="chips-w" style="margin-top:9px"></div></div>
+      <div class="card"><div class="lab">その場面に効いていたこと<span class="opt">良かった点も難しかった点も・複数OK</span></div><div class="chips" id="cond-w"></div><textarea class="ta" id="wc" rows="1" placeholder="具体をひとこと（自由・任意）" style="margin-top:9px"></textarea></div>
+      <div class="card"><div class="lab">日報を振り返って見えたパターン</div><textarea class="ta" id="w3" rows="2" placeholder="「いつも〜になりがち」「〜のとき調子がいい」など"></textarea></div>
+      <div class="card"><div class="lab">来週の一歩</div><div class="chips" id="step-w"></div>
+        <textarea class="ta" id="w4" rows="1" placeholder="ひとことで" style="margin-top:8px"></textarea></div>
+      <div class="card"><div class="lab">相談したいこと・学んだこと<span class="opt">任意</span></div><textarea class="ta" id="w5" rows="2" placeholder=""></textarea></div>
+      <button class="submit" data-save="weekly">今週分を送信する</button>
+      <div class="note">これは評価には使いません</div>
+    </div>
+
+    <!-- ===== 月報 ===== -->
+    <div class="screen" id="sc-monthly">
+      <div class="intro">今月の週報を読み返してから。上司との対話の材料。無理に前向きにまとめなくて大丈夫。</div>
+      <div class="dg" id="dgMonth"></div>
+      <div class="card">
+        <div class="lab">今月の成長 自己採点</div>
+        <div class="score" id="score-m">
+          <div class="s" data-v="1">1</div><div class="s" data-v="2">2</div><div class="s" data-v="3">3</div><div class="s" data-v="4">4</div><div class="s" data-v="5">5</div>
+        </div>
+        <div class="score-hint"><span>1 支援を増やしたい</span><span>3 着実に</span><span>5 大きく前進</span></div>
+      </div>
+      <div class="card"><div class="lab">その根拠（具体的な事実で）</div><textarea class="ta" id="m1" rows="2"></textarea></div>
+      <div class="card"><div class="lab">今月、身についたスキル・知識</div><textarea class="ta" id="m2" rows="2" placeholder="先月との差分で"></textarea></div>
+      <div class="card"><div class="lab">今月よく出た気持ち<span class="opt">いくつでも</span></div><div class="chips emo" id="chips-m"></div>
+        <div class="lab" style="margin-top:11px">それは「何を大切にしているサイン」だと思う？</div><textarea class="ta" id="m3" rows="2" placeholder="例：悔しい＝上手くなりたい／不安＝丁寧にやりたい"></textarea></div>
+      <div class="card"><div class="lab">今月、安心した・助けられた・前よりできた場面</div><textarea class="ta" id="m4" rows="2"></textarea></div>
+      <div class="card"><div class="lab">来月の成長目標（1つ）</div><textarea class="ta" id="m5" rows="2"></textarea></div>
+      <div class="card"><div class="lab">上司に聞きたいこと・支援してほしいこと</div><textarea class="ta" id="m6" rows="2"></textarea></div>
+      <button class="submit" data-save="monthly">今月分を送信する</button>
+      <div class="note">人事評価には使いません。上司コメントは別で行います</div>
+    </div>
+
+    <!-- ===== めざす姿 ===== -->
+    <div class="screen" id="sc-vision">
+      <div class="vsec"><div class="h">ビジョン（なりたい姿）</div>
+        <div class="vbox vision"><div class="big2" id="vVision"></div></div></div>
+      <div class="vsec"><div class="h">1年の目標</div>
+        <div class="vbox"><div class="big2" id="vYear"></div><div class="gwhy" id="vYearWhy" style="margin-top:4px"></div></div></div>
+      <div class="vsec"><div class="h">マイルストーン（いまの自分から逆算）</div>
+        <div class="vbox"><div class="tl" id="vTl"></div></div></div>
+      <div id="reviewInfo" style="text-align:center; font-size:12px; color:var(--hint); margin-bottom:8px"></div>
+      <button class="submit" id="vEditBtn" style="background:#eef2f5; color:#0883bf">軸を見直す</button>
+      <div class="note">価値観・目標は、毎月または3か月ごとの振り返りで見直します</div>
+    </div>
+
+    <!-- ===== ふりかえり ===== -->
+    <div class="screen" id="sc-review">
+      <div class="stat">
+        <div class="b"><div class="n" id="stDays">0</div><div class="l">これまでの記録</div></div>
+        <div class="b"><div class="n" id="stStreak">0</div><div class="l">続いている日数</div></div>
+      </div>
+      <div class="card"><div class="lab">最近よく出た気持ち</div><div id="emoBreak"><div class="empty" style="padding:8px">記録がたまると、ここに出ます</div></div></div>
+      <div class="hsec"><h3>これまでの記録</h3><div id="hist2"></div></div>
+    </div>
+
+  </div>
+
+  <div class="tab" id="tabbar">
+    <a class="on" data-sc="daily"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>日報</a>
+    <a data-sc="weekly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>週報</a>
+    <a data-sc="monthly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 2v4M16 2v4M7 14h4M7 17h7"/></svg>月報</a>
+    <a data-sc="vision"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4h12l-2.5 4 2.5 4H5"/></svg>めざす姿</a>
+    <a data-sc="review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>ふりかえり</a>
+  </div>
+
+  <div class="ov" id="ov">
+    <div class="cele">
+      <svg class="big" viewBox="0 0 24 24" fill="#00A0E9"><circle cx="6" cy="9" r="2.1"/><circle cx="12" cy="6.5" r="2.3"/><circle cx="18" cy="9" r="2.1"/><path d="M12 11c-3.2 0-5.5 2.3-5.5 4.8 0 2 1.7 3.2 5.5 3.2s5.5-1.2 5.5-3.2C17.5 13.3 15.2 11 12 11z"/></svg>
+      <div class="msg" id="celeMsg"></div>
+      <div class="sub2" id="celeSub"></div>
+      <button id="celeOk">とじる</button>
+    </div>
+  </div>
+
+  <div class="ov" id="ov2">
+    <div class="cele" style="width:322px; text-align:left">
+      <div style="font-size:16px; font-weight:600; margin-bottom:4px; text-align:center">設定</div>
+      <div style="font-size:12px; color:var(--hint); text-align:center; margin-bottom:10px">理念→目標→日々、を一本の線に</div>
+      <label class="setl">名前</label><input class="seti" id="setName" placeholder="例：やまだ はな">
+      <label class="setl">大事にしている価値観</label><textarea class="seti" id="setValues" rows="3" placeholder="自分が大切にしたいこと"></textarea>
+      <label class="setl">ビジョン（なりたい姿）</label><textarea class="seti" id="setVision" rows="2" placeholder="どんな獣医師・看護師・グルーマーになりたいか"></textarea>
+      <label class="setl">1年の目標</label><input class="seti" id="setYear" placeholder="例：一般診療を一人で回せるようになる">
+      <label class="setl">その目標のなぜ</label><textarea class="seti" id="setYearWhy" rows="2"></textarea>
+      <label class="setl">マイルストーン（逆算の節目・1行に1つ、「期限：内容」）</label><textarea class="seti" id="setMs" rows="4" placeholder="6月末：1日8件を一人で回す&#10;9月末：初診の問診を一人で完結&#10;12月末：外科の助手を任される&#10;3月末：一般診療を一人で回す"></textarea>
+      <div style="display:flex; gap:9px; margin-top:14px">
+        <button id="setCancel" style="flex:1; background:#eef2f5; color:var(--sub); border:none; padding:11px; border-radius:11px; font:inherit; font-weight:600; cursor:pointer">やめる</button>
+        <button id="setSave" style="flex:1; background:var(--blue); color:#fff; border:none; padding:11px; border-radius:11px; font:inherit; font-weight:600; cursor:pointer">保存する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ov" id="ov3">
+    <div class="cele" style="width:300px">
+      <div style="font-size:15.5px; font-weight:600; margin-bottom:6px">軸を見直しますか？</div>
+      <div style="font-size:13px; color:var(--sub); margin-bottom:16px; text-align:left">価値観・ビジョン・目標・マイルストーンは、毎月または3か月ごとの振り返りのときに、腰を据えて見直すものです。日々の記録のついでに変えるものではありません。</div>
+      <div style="display:flex; gap:9px">
+        <button id="revCancel" style="flex:1; background:#eef2f5; color:var(--sub); border:none; padding:11px; border-radius:11px; font:inherit; font-weight:600; cursor:pointer">やめる</button>
+        <button id="revGo" style="flex:1; background:var(--blue); color:#fff; border:none; padding:11px; border-radius:11px; font:inherit; font-weight:600; cursor:pointer">いま見直す</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var KEY="seichou_note_v1";
+  function load(){ try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}} }
+  function save(o){ try{localStorage.setItem(KEY, JSON.stringify(o))}catch(e){} }
+  function p2(n){return String(n).padStart(2,"0");}
+  function iso(d){return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());}
+  function wd(d){return ["日","月","火","水","木","金","土"][d.getDay()];}
+  function monday(d){var x=new Date(d); var g=(x.getDay()+6)%7; x.setDate(x.getDate()-g); return x;}
+  function weekKey(d){var m=monday(d); var th=new Date(m); th.setDate(th.getDate()+3);
+    var jan1=new Date(th.getFullYear(),0,1); var wk=Math.ceil((((th-jan1)/86400000)+1)/7);
+    return th.getFullYear()+"-W"+p2(wk);}
+  function monKey(d){return d.getFullYear()+"-"+p2(d.getMonth()+1);}
+
+  var EMOS=[["うれしい","joy"],["ほっとした","joy"],["楽しかった","joy"],["悔しい","reg"],["不安","calm"],["あせった","soft"],["モヤモヤ","soft"],["つらい","soft"]];
+  var CONDS=["時間","情報","手順・段取り","周りの助け","自分の準備","相手（飼い主・動物）","体調","その他"];
+  var STEPS=["自分で試す","先輩に相談する","仕組みを変えたい","今は整理中"];
+
+  function fillChips(box, items, cls){
+    box.innerHTML="";
+    items.forEach(function(it){
+      var k=Array.isArray(it)?it[0]:it; var c=Array.isArray(it)?it[1]:cls;
+      var s=document.createElement("span"); s.className="chip"+(c?" "+c:""); s.setAttribute("data-k",k); s.textContent=k;
+      box.appendChild(s);
+    });
+  }
+  function bindToggle(box){ box.addEventListener("click",function(e){var c=e.target.closest(".chip"); if(c)c.classList.toggle("on");}); }
+  function bindSingle(box){ box.addEventListener("click",function(e){var c=e.target.closest(".chip"); if(!c)return;
+    var on=c.classList.contains("on"); Array.prototype.forEach.call(box.children,function(x){x.classList.remove("on")}); if(!on)c.classList.add("on");}); }
+  function picked(box){ return Array.prototype.map.call(box.querySelectorAll(".chip.on"),function(c){return c.getAttribute("data-k")}); }
+
+  fillChips(document.getElementById("chips-d"), EMOS);
+  fillChips(document.getElementById("chips-w"), EMOS);
+  fillChips(document.getElementById("chips-m"), EMOS);
+  fillChips(document.getElementById("cond-w"), CONDS, "soft");
+  fillChips(document.getElementById("step-w"), STEPS, "sel");
+  bindToggle(document.getElementById("chips-d"));
+  bindToggle(document.getElementById("chips-w"));
+  bindToggle(document.getElementById("chips-m"));
+  bindToggle(document.getElementById("cond-w"));
+  bindSingle(document.getElementById("step-w"));
+  var scoreBox=document.getElementById("score-m"); var scoreVal=null;
+  scoreBox.addEventListener("click",function(e){var s=e.target.closest(".s"); if(!s)return;
+    Array.prototype.forEach.call(scoreBox.children,function(x){x.classList.remove("on")}); s.classList.add("on"); scoreVal=s.getAttribute("data-v");});
+
+  var data=load(); if(!data.entries)data.entries={}; if(!data.weekly)data.weekly={}; if(!data.monthly)data.monthly={};
+  if(!data.profile) data.profile={name:"やまだ はな",
+    values:"動物にも飼い主にも、誠実であること。わからないことは、わからないと言える自分でいる。",
+    vision:"飼い主が安心して何でも相談できる、やさしくて頼れる獣医師になりたい。",
+    yearGoal:"一般診療を一人で回せるようになる",
+    yearWhy:"チームの戦力になり、夜間や急患も任される存在になるため",
+    milestones:["6月末：1日8件の診察を一人で回す","9月末：初診の問診を最後まで一人で完結","12月末：基本的な外科の助手を任される","3月末：一般診療を一人で回す"],
+    lastReviewed:"2026-06-17"};
+  function parseMs(line){ var i=line.search(/[：:]/); return i>0?{due:line.slice(0,i).trim(),label:line.slice(i+1).trim()}:{due:"",label:line.trim()}; }
+  function renderProfile(){ var p=data.profile;
+    document.getElementById("valName").textContent=(p.name||"あなた")+"の大事にしている価値観";
+    document.getElementById("valText").textContent=p.values||"タップして、あなたの価値観を設定しよう";
+    var ms=(p.milestones||[]).filter(Boolean); var f=ms.length?parseMs(ms[0]):null;
+    document.getElementById("goalText").textContent=f?f.label:(p.yearGoal||"目標を設定しよう");
+    var due=document.getElementById("goalDue"); var dv=f?f.due:""; due.textContent=dv; due.style.display=dv?"inline-block":"none";
+    document.getElementById("goalWhy").textContent=p.yearGoal?("1年後："+p.yearGoal):"";
+    renderVision();
+  }
+  function renderVision(){ var p=data.profile;
+    document.getElementById("vVision").textContent=p.vision||"設定で、なりたい姿を書こう";
+    document.getElementById("vYear").textContent=p.yearGoal||"—";
+    document.getElementById("vYearWhy").textContent=p.yearWhy?("なぜ："+p.yearWhy):"";
+    var tl=document.getElementById("vTl"); var ms=(p.milestones||[]).filter(Boolean); tl.innerHTML="";
+    if(!ms.length){ tl.innerHTML='<div class="ms"><span class="dot"></span><div class="lab2">設定でマイルストーンを書こう</div></div>'; return; }
+    ms.forEach(function(line,i){ var m=parseMs(line);
+      tl.innerHTML+='<div class="ms'+(i===0?" now":"")+'"><span class="dot"></span>'+(m.due?'<div class="due">'+m.due+(i===0?" ・いまここ":"")+'</div>':"")+'<div class="lab2">'+m.label+'</div></div>'; });
+    var ri=document.getElementById("reviewInfo"); if(ri) ri.textContent="前回の見直し："+(p.lastReviewed||"まだ")+" ／ 目安：毎月〜3か月に1回";
+  }
+  renderProfile();
+  function openSettings(){ var p=data.profile;
+    document.getElementById("setName").value=p.name||""; document.getElementById("setValues").value=p.values||"";
+    document.getElementById("setVision").value=p.vision||""; document.getElementById("setYear").value=p.yearGoal||"";
+    document.getElementById("setYearWhy").value=p.yearWhy||""; document.getElementById("setMs").value=(p.milestones||[]).join("\n");
+    document.getElementById("ov2").classList.add("show");
+  }
+  function askReview(){ document.getElementById("ov3").classList.add("show"); }
+  document.getElementById("btnSet").addEventListener("click",askReview);
+  document.getElementById("vEditBtn").addEventListener("click",askReview);
+  document.getElementById("revCancel").addEventListener("click",function(){document.getElementById("ov3").classList.remove("show");});
+  document.getElementById("revGo").addEventListener("click",function(){document.getElementById("ov3").classList.remove("show"); openSettings();});
+  document.getElementById("setCancel").addEventListener("click",function(){document.getElementById("ov2").classList.remove("show");});
+  document.getElementById("setSave").addEventListener("click",function(){
+    data.profile={name:val("setName"),values:val("setValues"),vision:val("setVision"),yearGoal:val("setYear"),yearWhy:val("setYearWhy"),
+      milestones:document.getElementById("setMs").value.split("\n").map(function(s){return s.trim();}).filter(Boolean), lastReviewed:iso(now)};
+    save(data); renderProfile(); document.getElementById("ov2").classList.remove("show");
+  });
+  var now=new Date();
+  document.getElementById("scDate").textContent=iso(now)+"（"+wd(now)+"）";
+
+  function updateTenure(){var n=Object.keys(data.entries).length;
+    document.getElementById("tenureTxt").textContent=n>0?("これまで "+n+"日の記録"):"はじめの一歩";}
+  updateTenure();
+
+  // past self
+  var ks=Object.keys(data.entries).sort().reverse();
+  if(ks.length && data.entries[ks[0]].f4){
+    document.getElementById("pastCard").style.display="block";
+    document.getElementById("pastQ").textContent="「"+data.entries[ks[0]].f4+"」 ― 今日はどうだった？";
+  }
+
+  // voice
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  document.querySelectorAll("[data-mic]").forEach(function(btn){btn.style.cursor="pointer";
+    btn.addEventListener("click",function(){ if(!SR){alert("この端末は音声入力に対応していません。キーボードで入力してください。");return;}
+      var tg=document.getElementById(btn.getAttribute("data-mic")); var r=new SR(); r.lang="ja-JP"; r.interimResults=false;
+      r.onresult=function(ev){var x=ev.results[0][0].transcript; tg.value=(tg.value?tg.value+" ":"")+x;}; try{r.start()}catch(e){} });});
+
+  function pickEmo(arr){var pri=["つらい","不安","あせった","悔しい","モヤモヤ","うれしい","ほっとした","楽しかった"];
+    for(var i=0;i<pri.length;i++)if(arr.indexOf(pri[i])>=0)return pri[i]; return null;}
+  function message(emo){var m={
+    "悔しい":["悔しいのは、上手くなりたい気持ちの証だね。","その悔しさは、来週の力になる。"],
+    "不安":["不安なときは、ひとりで抱えなくていい。","明日、誰かに声をかけてみよう。"],
+    "つらい":["今日はよく続けた。無理しないで。","つらい時は休むのも、大事な選択。"],
+    "あせった":["あせった日も、ちゃんと前に進んでる。","焦りは、丁寧にやりたい気持ちの裏返し。"],
+    "モヤモヤ":["モヤモヤは、考えてる証拠。","言葉にできただけで一歩前進。"],
+    "うれしい":["いいね、その調子。","うれしい気持ちも、ちゃんと記録に。"],
+    "ほっとした":["ほっとできた日も大切な一日。","その安心が、次の余裕になる。"],
+    "楽しかった":["楽しいと感じられたの、すてきだね。","その気持ちが続く力になる。"]};
+    if(emo&&m[emo])return m[emo]; return ["おつかれさま。今日も書けたね。","書けたこと自体が、ひとつの前進。"];}
+
+  function val(id){return document.getElementById(id).value.trim();}
+  function celebrate(a,b){document.getElementById("celeMsg").textContent=a; document.getElementById("celeSub").textContent=b; document.getElementById("ov").classList.add("show");}
+  document.getElementById("celeOk").addEventListener("click",function(){document.getElementById("ov").classList.remove("show");});
+
+  function renderHist(boxId){
+    var box=document.getElementById(boxId);
+    var keys=Object.keys(data.entries).sort().reverse();
+    if(!keys.length){box.innerHTML='<div class="empty">まだ記録がありません。今日の1件目を書いてみよう。</div>'; return;}
+    box.innerHTML="";
+    keys.slice(0,14).forEach(function(k){var e=data.entries[k];
+      var emo=Array.isArray(e.emo)?e.emo.join("・"):(e.emo||"");
+      var it=document.createElement("div"); it.className="hitem";
+      it.innerHTML='<div class="hd2"><span class="d">'+k+'</span><span class="m">'+emo+'</span></div>'+
+        '<div class="body2">やったこと：'+(e.f1||"-")+'<br>できた：'+(e.f2||"-")+'<br>つまずき：'+(e.f3||"-")+'<br>明日：'+(e.f4||"-")+'</div>';
+      it.addEventListener("click",function(){it.classList.toggle("open");}); box.appendChild(it);});
+  }
+
+  function calcStreak(){var d=new Date(),c=0; for(var i=0;i<60;i++){var s=iso(d); if(data.entries[s])c++; else if(i>0)break; d.setDate(d.getDate()-1);} return c;}
+
+  function weekDigest(){
+    var box=document.getElementById("dgWeek"); var m=monday(now); var got=[],emo={},wins=[],trips=[];
+    for(var i=0;i<7;i++){var d=new Date(m); d.setDate(d.getDate()+i); var e=data.entries[iso(d)];
+      if(e){got.push(wd(d)); (e.emo||[]).forEach(function(x){emo[x]=(emo[x]||0)+1;}); if(e.f2)wins.push(e.f2); if(e.f3)trips.push(e.f3);}}
+    var top=Object.keys(emo).sort(function(a,b){return emo[b]-emo[a];}).slice(0,3).map(function(k){return k+"("+emo[k]+")";});
+    var h='<div class="t"><svg class="paw" viewBox="0 0 24 24" fill="#0E5E86"><circle cx="6" cy="9" r="2.1"/><circle cx="12" cy="6.5" r="2.3"/><circle cx="18" cy="9" r="2.1"/><path d="M12 11c-3.2 0-5.5 2.3-5.5 4.8 0 2 1.7 3.2 5.5 3.2s5.5-1.2 5.5-3.2C17.5 13.3 15.2 11 12 11z"/></svg>今週のあなた（読み返し）</div>';
+    if(!got.length){ h+='<div class="none">今週はまだ日報がありません。日報を書くと、ここに今週のまとめが出ます。</div>'; box.innerHTML=h; return; }
+    h+='<div class="r">記録した日：<b>'+got.join("・")+'</b>（'+got.length+'日）</div>';
+    h+='<div class="r">よく出た気持ち：'+(top.length?top.join("、"):"—")+'</div>';
+    if(wins.length){h+='<div class="r">できたこと：</div>'; wins.forEach(function(w){h+='<div class="mini">・'+w+'</div>';});}
+    if(trips.length){h+='<div class="r">つまずき：</div>'; trips.forEach(function(w){h+='<div class="mini">・'+w+'</div>';});}
+    box.innerHTML=h;
+  }
+  function monthDigest(){
+    var box=document.getElementById("dgMonth"); var mk=monKey(now); var rows=[];
+    Object.keys(data.weekly).sort().forEach(function(wk){ if(data.weekly[wk].month===mk) rows.push(data.weekly[wk]); });
+    var h='<div class="t"><svg class="paw" viewBox="0 0 24 24" fill="#0E5E86"><circle cx="6" cy="9" r="2.1"/><circle cx="12" cy="6.5" r="2.3"/><circle cx="18" cy="9" r="2.1"/><path d="M12 11c-3.2 0-5.5 2.3-5.5 4.8 0 2 1.7 3.2 5.5 3.2s5.5-1.2 5.5-3.2C17.5 13.3 15.2 11 12 11z"/></svg>今月のあなた（週報から）</div>';
+    if(!rows.length){h+='<div class="none">今月の週報がまだありません。週報を書くと、ここに今月のまとめが出ます。</div>'; box.innerHTML=h; return;}
+    rows.forEach(function(r){ if(r.w1)h+='<div class="mini">手応え：'+r.w1+'</div>'; });
+    rows.forEach(function(r){ if(r.w4||r.step)h+='<div class="mini">来週の一歩：'+(r.step||"")+(r.w4?(" / "+r.w4):"")+'</div>'; });
+    box.innerHTML=h;
+  }
+  function reviewRender(){
+    document.getElementById("stDays").textContent=Object.keys(data.entries).length;
+    document.getElementById("stStreak").textContent=calcStreak();
+    var emo={}; Object.keys(data.entries).forEach(function(k){(data.entries[k].emo||[]).forEach(function(x){emo[x]=(emo[x]||0)+1;});});
+    var arr=Object.keys(emo).sort(function(a,b){return emo[b]-emo[a];});
+    var box=document.getElementById("emoBreak");
+    if(!arr.length){box.innerHTML='<div class="empty" style="padding:8px">記録がたまると、ここに出ます</div>'; return;}
+    var max=emo[arr[0]]; box.innerHTML="";
+    arr.forEach(function(k){var pct=Math.round(emo[k]/max*100);
+      box.innerHTML+='<div class="bar"><span class="nm">'+k+'</span><span class="tr"><span class="fl" style="width:'+pct+'%"></span></span><span class="ct">'+emo[k]+'</span></div>';});
+  }
+
+  renderHist("hist"); weekDigest(); monthDigest(); reviewRender();
+
+  // tabs
+  var titles={daily:"今日の記録",weekly:"今週のふりかえり",monthly:"今月のふりかえり",vision:"めざす姿",review:"あなたの歩み"};
+  document.getElementById("tabbar").addEventListener("click",function(e){
+    var a=e.target.closest("a"); if(!a)return; var sc=a.getAttribute("data-sc");
+    Array.prototype.forEach.call(this.children,function(x){x.classList.remove("on")}); a.classList.add("on");
+    document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active")});
+    document.getElementById("sc-"+sc).classList.add("active");
+    document.getElementById("scTitle").textContent=titles[sc];
+    document.getElementById("scDate").style.display = (sc==="daily")?"block":"none";
+    if(sc==="weekly")weekDigest(); if(sc==="monthly")monthDigest(); if(sc==="vision")renderVision(); if(sc==="review"){reviewRender(); renderHist("hist2");}
+    window.scrollTo(0,0);
+  });
+
+  // save handlers
+  document.querySelectorAll("[data-save]").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var kind=btn.getAttribute("data-save");
+      if(kind==="daily"){
+        var list=picked(document.getElementById("chips-d"));
+        data.entries[iso(now)]={f1:val("f1"),f2:val("f2"),f3:val("f3"),f4:val("f4"),emo:list,ts:new Date().toISOString()};
+        save(data); renderHist("hist"); updateTenure(); weekDigest();
+        var msg=message(pickEmo(list)); celebrate(msg[0],msg[1]);
+      } else if(kind==="weekly"){
+        data.weekly[weekKey(now)]={w1:val("w1"),w2:val("w2"),emo:picked(document.getElementById("chips-w")),
+          cond:picked(document.getElementById("cond-w")),condNote:val("wc"),w3:val("w3"),step:(picked(document.getElementById("step-w"))[0]||""),
+          w4:val("w4"),w5:val("w5"),month:monKey(now),ts:new Date().toISOString()};
+        save(data); monthDigest(); celebrate("今週、よく振り返ったね。","点が線になってきている。");
+      } else if(kind==="monthly"){
+        data.monthly[monKey(now)]={score:scoreVal,m1:val("m1"),m2:val("m2"),emo:picked(document.getElementById("chips-m")),
+          m3:val("m3"),m4:val("m4"),m5:val("m5"),m6:val("m6"),ts:new Date().toISOString()};
+        save(data); celebrate("今月もおつかれさま。","上司との対話の材料ができたね。");
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
