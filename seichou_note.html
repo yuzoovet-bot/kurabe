@@ -2,34 +2,43 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>成長ノート（仮）</title>
 <style>
   :root{
-    --blue:#00A0E9; --navy:#0E5E86;
-    --ink:#1b2733; --sub:#5a6b78; --hint:#8a98a3;
-    --line:#e6ecf0; --bg:#f4f8fb; --card:#ffffff;
+    --blue:#00A0E9; --navy:#0E5E86; --blue2:#3AB6F0;
+    --pink:#F47CA6; --pinkbg:#FFEDF3; --pinkline:#F8CADB; --pinktext:#C13A6B;
+    --lav:#7F77DD; --lavbg:#F3F0FB; --lavline:#E0D8F5;
+    --ink:#23303b; --sub:#566571; --hint:#7c8a95;
+    --line:#ebf0f4; --bg:#f4f8fb; --card:#ffffff;
     --joy:#0F6E56; --joybg:#E1F5EE; --calm:#185FA5; --calmbg:#E6F1FB;
     --reg:#854F0B; --regbg:#FAEEDA; --soft:#5F5E5A; --softbg:#F1EFE8;
+    --round:"Hiragino Maru Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+    --shadow:0 4px 16px rgba(14,94,134,.06);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0; padding:0; background:var(--bg); color:var(--ink);
+  html,body{margin:0; padding:0; color:var(--ink);
+    background:linear-gradient(180deg,#fdf2f7 0%,#eef7fc 26%,var(--bg) 60%);
+    background-attachment:fixed;
     font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
     line-height:1.6; -webkit-font-smoothing:antialiased;}
   .wrap{max-width:440px; margin:0 auto; min-height:100vh; position:relative; padding-bottom:76px;}
 
-  .hd{background:var(--navy); color:#fff; padding:16px 18px 18px; border-radius:0 0 20px 20px;}
-  .hd .row{display:flex; align-items:center; justify-content:space-between;}
-  .brand{font-size:13px; color:#cfe6f4; display:flex; align-items:center; gap:6px;}
-  .tenure{font-size:12px; color:#9ec9e2; background:rgba(255,255,255,.12); padding:3px 10px; border-radius:11px; display:flex; align-items:center; gap:5px;}
-  .h-title{font-size:21px; font-weight:600; margin-top:10px; letter-spacing:.02em;}
-  .h-date{font-size:13px; color:#9ec9e2; margin-top:2px;}
+  .hd{position:relative; overflow:hidden; background:linear-gradient(135deg,#0E5E86 0%,#0A86C4 55%,#00A0E9 100%);
+    color:#fff; padding:16px 18px 20px; border-radius:0 0 24px 24px; box-shadow:0 6px 20px rgba(14,94,134,.18);}
+  .hd:before{content:""; position:absolute; top:-40px; right:-30px; width:150px; height:150px; border-radius:50%;
+    background:radial-gradient(circle,rgba(244,124,166,.45) 0%,rgba(244,124,166,0) 70%); pointer-events:none;}
+  .hd .row{position:relative; display:flex; align-items:center; justify-content:space-between;}
+  .brand{font-size:13px; color:#e3f2fb; display:flex; align-items:center; gap:6px;}
+  .tenure{font-size:12px; color:#fff; background:rgba(255,255,255,.18); padding:3px 11px; border-radius:11px; display:flex; align-items:center; gap:5px;}
+  .h-title{position:relative; font-family:var(--round); font-size:22px; font-weight:600; margin-top:11px; letter-spacing:.02em;}
+  .h-date{position:relative; font-size:13px; color:#d8eefa; margin-top:2px;}
   .paw{width:16px; height:16px; display:inline-block; vertical-align:-3px;}
 
   .body{padding:16px 14px;}
   .screen{display:none;} .screen.active{display:block;}
-  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px 14px 12px; margin-bottom:13px; transition:box-shadow .2s;}
-  .card:focus-within{box-shadow:0 0 0 3px rgba(0,160,233,.16); border-color:var(--blue);}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:14px 15px 12px; margin-bottom:13px; box-shadow:var(--shadow); transition:box-shadow .2s, border-color .2s;}
+  .card:focus-within{box-shadow:0 0 0 3px rgba(244,124,166,.18); border-color:var(--pink);}
   .lab{font-size:13.5px; color:var(--sub); margin-bottom:7px; display:flex; align-items:center; justify-content:space-between;}
   .lab .opt{font-size:12px; color:var(--hint);}
   .ta{width:100%; border:none; outline:none; resize:none; font:inherit; font-size:15px; color:var(--ink); background:transparent; min-height:24px; line-height:1.55;}
@@ -37,7 +46,7 @@
   .two{display:grid; grid-template-columns:1fr 1fr; gap:11px;}
 
   .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:3px;}
-  .chip{font-size:13.5px; padding:7px 13px; border-radius:18px; background:#f1f5f8; color:var(--sub);
+  .chip{font-size:13.5px; padding:9px 14px; border-radius:18px; background:#f1f5f8; color:var(--sub);
     border:1.5px solid transparent; cursor:pointer; transition:transform .12s, background .2s, color .2s, border-color .2s; position:relative;}
   .chip:active{transform:scale(.92);}
   .chip.on{transform:translateY(-1px);}
@@ -52,20 +61,21 @@
   .score .s.on{background:#e6f5fd; color:#0883bf; border-color:var(--blue);}
   .score-hint{font-size:11.5px; color:var(--hint); display:flex; justify-content:space-between; margin-top:5px;}
 
-  .dg{background:#eef6fb; border:1px solid #d7e8f3; border-radius:14px; padding:12px 13px; margin-bottom:14px;}
-  .dg .t{font-size:12.5px; color:var(--navy); font-weight:600; margin-bottom:7px; display:flex; align-items:center; gap:5px;}
+  .dg{background:linear-gradient(135deg,#fdeff5 0%,#eef6fb 100%); border:1px solid #e7dcea; border-radius:16px; padding:12px 14px; margin-bottom:14px; box-shadow:var(--shadow);}
+  .dg .t{font-family:var(--round); font-size:12.5px; color:var(--navy); font-weight:600; margin-bottom:7px; display:flex; align-items:center; gap:5px;}
+  .dg .wk{font-size:11.5px; color:var(--sub); font-weight:600; background:rgba(255,255,255,.7); border-radius:9px; padding:2px 9px; margin-bottom:7px; display:inline-block;}
   .dg .r{font-size:13px; color:var(--ink); margin:3px 0;}
   .dg .r b{font-weight:600;}
   .dg .mini{font-size:12px; color:var(--sub); margin:2px 0 2px 4px;}
   .dg .none{font-size:12.5px; color:var(--hint);}
 
-  .submit{width:100%; border:none; background:var(--blue); color:#fff; font:inherit; font-size:16px; font-weight:600; padding:14px; border-radius:14px; cursor:pointer; transition:transform .12s, background .2s; letter-spacing:.03em;}
-  .submit:active{transform:scale(.98); background:#0090d4;}
+  .submit{width:100%; border:none; background:linear-gradient(135deg,#00A0E9 0%,#3AB6F0 100%); color:#fff; font:inherit; font-size:16px; font-weight:600; padding:14px; border-radius:16px; cursor:pointer; transition:transform .12s, filter .2s; letter-spacing:.03em; box-shadow:0 6px 16px rgba(0,160,233,.26);}
+  .submit:active{transform:scale(.98); filter:brightness(.96);}
   .note{text-align:center; font-size:12px; color:var(--hint); margin:9px 0 4px;}
   .intro{font-size:13px; color:var(--sub); margin:0 4px 12px;}
 
   .hsec{margin-top:18px;}
-  .hsec h3{font-size:14px; color:var(--sub); font-weight:600; margin:0 4px 9px;}
+  .hsec h3{font-family:var(--round); font-size:14px; color:var(--sub); font-weight:600; margin:0 4px 9px;}
   .hitem{background:var(--card); border:1px solid var(--line); border-radius:13px; padding:11px 13px; margin-bottom:9px; cursor:pointer;}
   .hitem .hd2{display:flex; align-items:center; justify-content:space-between;}
   .hitem .d{font-size:13.5px; color:var(--ink); font-weight:600;}
@@ -76,7 +86,7 @@
 
   .stat{display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:14px;}
   .stat .b{background:#fff; border:1px solid var(--line); border-radius:14px; padding:13px;}
-  .stat .b .n{font-size:24px; font-weight:600; color:var(--navy);}
+  .stat .b{box-shadow:var(--shadow);} .stat .b .n{font-family:var(--round); font-size:25px; font-weight:600; color:var(--navy);}
   .stat .b .l{font-size:12px; color:var(--sub);}
   .bar{display:flex; align-items:center; gap:8px; margin:6px 0; font-size:13px;}
   .bar .nm{width:74px; color:var(--sub); flex:none;}
@@ -86,7 +96,7 @@
 
   .tab{position:fixed; left:0; right:0; bottom:0; max-width:440px; margin:0 auto; background:#fff; border-top:1px solid var(--line); display:flex; padding:6px 0 8px;}
   .tab a{flex:1; text-align:center; color:var(--hint); font-size:11.5px; text-decoration:none; cursor:pointer;}
-  .tab a.on{color:var(--blue);}
+  .tab a.on{color:#0883bf; font-weight:600;}
   .tab a svg{display:block; margin:0 auto 2px; width:23px; height:23px;}
 
   .ov{position:fixed; inset:0; background:rgba(14,94,134,.34); display:none; align-items:center; justify-content:center; z-index:30;}
@@ -95,10 +105,10 @@
   .cele{background:#fff; border-radius:20px; padding:26px 24px; width:282px; text-align:center; transform:scale(.85); animation:pop .35s forwards;}
   @keyframes pop{to{transform:scale(1)}}
   .cele .big{width:60px; height:60px; margin:0 auto 10px;}
-  .cele .msg{font-size:15.5px; color:var(--ink); margin-bottom:4px; font-weight:600;}
+  .cele{box-shadow:0 18px 50px rgba(14,94,134,.22);} .cele .msg{font-family:var(--round); font-size:16px; color:var(--ink); margin-bottom:4px; font-weight:600;}
   .cele .sub2{font-size:13px; color:var(--sub); margin-bottom:16px;}
   .cele button{border:none; background:var(--blue); color:#fff; font:inherit; font-size:14px; font-weight:600; padding:10px 22px; border-radius:11px; cursor:pointer;}
-  .hgear{background:rgba(255,255,255,.14); border:none; color:#cfe6f4; width:28px; height:28px; border-radius:9px; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+  .hgear{background:rgba(255,255,255,.16); border:none; color:#e3f2fb; width:38px; height:38px; border-radius:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;}
   .topfix{margin-bottom:14px;}
   .values{background:#f3f0fb; border:1px solid #e0d8f5; border-radius:14px; padding:11px 13px; margin-bottom:11px;}
   .values .vhead{display:flex; align-items:center; justify-content:space-between;}
@@ -129,6 +139,27 @@
   .ms.now .due{color:#0883bf; font-weight:600;}
   .ms .lab2{font-size:14px; color:var(--ink);}
   .ms.now .lab2{font-weight:600;}
+  .conf{position:absolute; top:-18px; width:9px; height:14px; opacity:0; z-index:1; border-radius:2px;}
+  .ov.show .conf{animation:confFall 1.9s ease-in forwards;}
+  @keyframes confFall{0%{opacity:0; transform:translateY(-10px) rotate(0)} 10%{opacity:1} 100%{opacity:0; transform:translateY(380px) rotate(600deg)}}
+  .fp{position:absolute; bottom:16%; width:22px; height:22px; opacity:0; z-index:1;}
+  .ov.show .fp{animation:floatUp 1.6s ease-out forwards;}
+  @keyframes floatUp{0%{opacity:0; transform:translateY(20px) scale(.6)} 20%{opacity:.9} 100%{opacity:0; transform:translateY(-160px) scale(1.15) rotate(22deg)}}
+  .buddy{display:flex; align-items:center; gap:14px; background:linear-gradient(135deg,#fff 0%,#fff6fa 100%); border:1px solid var(--pinkline); border-radius:18px; padding:14px; margin-bottom:14px; box-shadow:var(--shadow);}
+  .buddy .bd-art{width:84px; height:84px; flex:none; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 50% 40%,#fef0f6 0%,#eef7fc 100%); border-radius:16px;}
+  .buddy .bd-name{font-family:var(--round); font-size:16px; font-weight:600; color:var(--ink);}
+  .buddy .bd-mood{font-size:13px; color:var(--sub); margin-top:2px;}
+  .buddy .bd-next{font-size:12px; color:var(--pinktext); font-weight:600; margin-top:5px;}
+  .prio{background:linear-gradient(135deg,#fff 0%,#fff7fa 100%); border:1px solid var(--pinkline); border-radius:16px; padding:12px 14px; margin-bottom:11px; box-shadow:var(--shadow);}
+  .prio .ph{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;}
+  .prio .pt{font-family:var(--round); font-size:12px; color:var(--pinktext); font-weight:600;}
+  .prio .pedit{background:none; border:none; color:var(--sub); cursor:pointer; padding:8px; margin:-6px; min-width:40px; min-height:40px; display:flex; align-items:center; justify-content:center;}
+  .prio .pitem{display:flex; align-items:flex-start; gap:9px; margin:7px 0; font-size:14px; color:var(--ink); line-height:1.5;}
+  .prio .pnum{flex:none; width:21px; height:21px; border-radius:50%; background:var(--pinkbg); color:var(--pink); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-top:1px;}
+  .prio .empty2{font-size:13px; color:var(--hint);}
+  .ta:focus-visible,.seti:focus-visible{outline:2px solid var(--navy); outline-offset:1px; border-radius:6px;}
+  .submit:focus-visible,.chip:focus-visible,.score .s:focus-visible,.cele button:focus-visible,
+  .tab a:focus-visible,.hgear:focus-visible,.pedit:focus-visible,.vedit:focus-visible{outline:3px solid var(--navy); outline-offset:2px;}
 </style>
 </head>
 <body>
@@ -161,6 +192,10 @@
         <div class="gtext" id="goalText"></div>
         <div class="gwhy" id="goalWhy"></div>
       </div>
+      <div class="prio">
+        <div class="ph"><span class="pt">いまの優先（トップ3）</span><button class="pedit" id="priEdit" aria-label="優先を編集"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div>
+        <div id="priList"></div>
+      </div>
     </div>
 
     <!-- ===== 日報 ===== -->
@@ -189,7 +224,7 @@
 
     <!-- ===== 週報 ===== -->
     <div class="screen" id="sc-weekly">
-      <div class="intro">まず今週の自分を読み返してから。点を線にする時間。整理できない時は「今は整理中」でOK。</div>
+      <div class="intro">週は月〜日のひと区切り。その週シフトの最後の出勤日に、しめくくりとしてどうぞ。まず今週の自分を読み返してから。点を線にする時間。整理できない時は「今は整理中」でOK。</div>
       <div class="dg" id="dgWeek"></div>
       <div class="card"><div class="lab">今週の手応え（成長・できた・助けられた場面）</div><textarea class="ta" id="w1" rows="2" placeholder="小さくてOK。1つでいい"></textarea></div>
       <div class="card"><div class="lab">今週いちばん心が動いた場面</div><textarea class="ta" id="w2" rows="2" placeholder="どんな場面だった？"></textarea>
@@ -240,22 +275,31 @@
 
     <!-- ===== ふりかえり ===== -->
     <div class="screen" id="sc-review">
+      <div class="buddy" id="buddy"></div>
       <div class="stat">
         <div class="b"><div class="n" id="stDays">0</div><div class="l">これまでの記録</div></div>
         <div class="b"><div class="n" id="stStreak">0</div><div class="l">続いている日数</div></div>
       </div>
       <div class="card"><div class="lab">最近よく出た気持ち</div><div id="emoBreak"><div class="empty" style="padding:8px">記録がたまると、ここに出ます</div></div></div>
       <div class="hsec"><h3>これまでの記録</h3><div id="hist2"></div></div>
+      <div class="hsec"><h3>バックアップ</h3>
+        <div style="display:flex; gap:9px">
+          <button class="submit" id="expBtn" style="background:#eef2f5; color:#0883bf">書き出す</button>
+          <button class="submit" id="impBtn" style="background:#eef2f5; color:#0883bf">読み込む</button>
+        </div>
+        <input type="file" id="impFile" accept="application/json,.json" style="display:none">
+        <div style="font-size:12px; color:var(--hint); padding:8px 2px">端末を変えるときや、念のための保存に。書き出したファイルを読み込むと復元できます。</div>
+      </div>
     </div>
 
   </div>
 
-  <div class="tab" id="tabbar">
-    <a class="on" data-sc="daily"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>日報</a>
-    <a data-sc="weekly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>週報</a>
-    <a data-sc="monthly"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 2v4M16 2v4M7 14h4M7 17h7"/></svg>月報</a>
-    <a data-sc="vision"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4h12l-2.5 4 2.5 4H5"/></svg>めざす姿</a>
-    <a data-sc="review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>ふりかえり</a>
+  <div class="tab" id="tabbar" role="tablist" aria-label="記録のタブ">
+    <a class="on" data-sc="daily" role="tab" aria-selected="true" aria-controls="sc-daily" tabindex="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>日報</a>
+    <a data-sc="weekly" role="tab" aria-selected="false" aria-controls="sc-weekly" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>週報</a>
+    <a data-sc="monthly" role="tab" aria-selected="false" aria-controls="sc-monthly" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 2v4M16 2v4M7 14h4M7 17h7"/></svg>月報</a>
+    <a data-sc="vision" role="tab" aria-selected="false" aria-controls="sc-vision" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4h12l-2.5 4 2.5 4H5"/></svg>めざす姿</a>
+    <a data-sc="review" role="tab" aria-selected="false" aria-controls="sc-review" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>ふりかえり</a>
   </div>
 
   <div class="ov" id="ov">
@@ -271,7 +315,7 @@
     <div class="cele" style="width:322px; text-align:left">
       <div style="font-size:16px; font-weight:600; margin-bottom:4px; text-align:center">設定</div>
       <div style="font-size:12px; color:var(--hint); text-align:center; margin-bottom:10px">理念→目標→日々、を一本の線に</div>
-      <label class="setl">名前</label><input class="seti" id="setName" placeholder="例：やまだ はな">
+      <label class="setl">名前</label><input class="seti" id="setName" placeholder="例：山田 華">
       <label class="setl">大事にしている価値観</label><textarea class="seti" id="setValues" rows="3" placeholder="自分が大切にしたいこと"></textarea>
       <label class="setl">ビジョン（なりたい姿）</label><textarea class="seti" id="setVision" rows="2" placeholder="どんな獣医師・看護師・グルーマーになりたいか"></textarea>
       <label class="setl">1年の目標</label><input class="seti" id="setYear" placeholder="例：一般診療を一人で回せるようになる">
@@ -295,13 +339,28 @@
     </div>
   </div>
 
+  <div class="ov" id="ov4">
+    <div class="cele" style="width:322px; text-align:left">
+      <div style="font-size:16px; font-weight:600; margin-bottom:4px; text-align:center">いまの優先（トップ3）</div>
+      <div style="font-size:12px; color:var(--hint); text-align:center; margin-bottom:10px">いちばん力を入れる3つ。週の振り返りで見直そう</div>
+      <label class="setl">1</label><input class="seti" id="pri1" placeholder="例：初診の問診を、型どおり最後まで一人で">
+      <label class="setl">2</label><input class="seti" id="pri2" placeholder="例：採血・保定の成功率を上げる">
+      <label class="setl">3</label><input class="seti" id="pri3" placeholder="例：わからないことは その日のうちに先輩へ">
+      <div style="display:flex; gap:9px; margin-top:14px">
+        <button id="priCancel" style="flex:1; background:#eef2f5; color:var(--sub); border:none; padding:11px; border-radius:11px; font:inherit; font-weight:600; cursor:pointer">やめる</button>
+        <button id="priSave" style="flex:1; background:var(--blue); color:#fff; border:none; padding:11px; border-radius:11px; font:inherit; font-weight:600; cursor:pointer">保存する</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
 (function(){
   var KEY="seichou_note_v1";
   function load(){ try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}} }
-  function save(o){ try{localStorage.setItem(KEY, JSON.stringify(o))}catch(e){} }
+  function save(o){ try{localStorage.setItem(KEY, JSON.stringify(o)); return true;}catch(e){ return false; } }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
   function p2(n){return String(n).padStart(2,"0");}
   function iso(d){return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());}
   function wd(d){return ["日","月","火","水","木","金","土"][d.getDay()];}
@@ -342,14 +401,33 @@
   scoreBox.addEventListener("click",function(e){var s=e.target.closest(".s"); if(!s)return;
     Array.prototype.forEach.call(scoreBox.children,function(x){x.classList.remove("on")}); s.classList.add("on"); scoreVal=s.getAttribute("data-v");});
 
-  var data=load(); if(!data.entries)data.entries={}; if(!data.weekly)data.weekly={}; if(!data.monthly)data.monthly={};
-  if(!data.profile) data.profile={name:"やまだ はな",
-    values:"動物にも飼い主にも、誠実であること。わからないことは、わからないと言える自分でいる。",
-    vision:"飼い主が安心して何でも相談できる、やさしくて頼れる獣医師になりたい。",
+  function normEmo(x){ return typeof x==="string"?(x?[x]:[]):(Array.isArray(x)?x:[]); }
+  function normalizeData(d){
+    if(!d||typeof d!=="object"||Array.isArray(d)) d={};
+    ["entries","weekly","monthly"].forEach(function(key){ if(!d[key]||typeof d[key]!=="object"||Array.isArray(d[key])) d[key]={}; });
+    Object.keys(d.entries).forEach(function(k){ var e=d.entries[k]; if(!e||typeof e!=="object"||Array.isArray(e)){e={};d.entries[k]=e;} e.emo=normEmo(e.emo); });
+    Object.keys(d.weekly).forEach(function(k){ var w=d.weekly[k]; if(!w||typeof w!=="object"||Array.isArray(w)){w={};d.weekly[k]=w;} w.emo=normEmo(w.emo); if(!Array.isArray(w.cond))w.cond=normEmo(w.cond); if(!w.month && typeof w.ts==="string" && w.ts.length>=7) w.month=w.ts.slice(0,7); });
+    Object.keys(d.monthly).forEach(function(k){ var m=d.monthly[k]; if(!m||typeof m!=="object"||Array.isArray(m)){m={};d.monthly[k]=m;} m.emo=normEmo(m.emo); });
+    if(d.profile!=null){ if(typeof d.profile!=="object"||Array.isArray(d.profile)) d.profile={};
+      if(!Array.isArray(d.profile.priorities)) d.profile.priorities=[];
+      if(!Array.isArray(d.profile.milestones)) d.profile.milestones=[]; }
+    return d;
+  }
+  var data=normalizeData(load());
+  var SAMPLE_VER=2;
+  function sampleProfile(){ return {name:"山田 華",
+    values:"動物にも飼い主さんにも、誠実でいること。わからないことは「わからない」と正直に言える、そんな自分でいたい。",
+    vision:"飼い主さんが安心して何でも相談できる、やさしくて頼れる獣医師になる。",
     yearGoal:"一般診療を一人で回せるようになる",
-    yearWhy:"チームの戦力になり、夜間や急患も任される存在になるため",
-    milestones:["6月末：1日8件の診察を一人で回す","9月末：初診の問診を最後まで一人で完結","12月末：基本的な外科の助手を任される","3月末：一般診療を一人で回す"],
-    lastReviewed:"2026-06-17"};
+    yearWhy:"チームの戦力になって、夜間や急患も任せてもらえる存在になりたいから",
+    milestones:["6月末：1日8件の診察を一人で回す","9月末：初診の問診を10件 最後まで一人で","12月末：基本的な外科の助手を5件 任される","3月末：一般診療を1日15件 一人で回す"],
+    priorities:["初診の問診を、1日3件は最後まで一人で","採血の成功を まずは10回中8回に","気になったことは その日のうちに3つ 先輩へ質問"],
+    lastReviewed:"2026-06-17", _sample:true, _sampleVer:SAMPLE_VER}; }
+  if(!data.profile){ data.profile=sampleProfile(); }
+  else if((data.profile._sample===true && (data.profile._sampleVer||0)<SAMPLE_VER) || data.profile.name==="やまだ はな"){
+    // 未編集のお試しサンプル（または旧版サンプル名）のみ最新サンプルへ差し替え。編集済みの実データは触らない。
+    data.profile=sampleProfile(); save(data);
+  }
   function parseMs(line){ var i=line.search(/[：:]/); return i>0?{due:line.slice(0,i).trim(),label:line.slice(i+1).trim()}:{due:"",label:line.trim()}; }
   function renderProfile(){ var p=data.profile;
     document.getElementById("valName").textContent=(p.name||"あなた")+"の大事にしている価値観";
@@ -358,7 +436,7 @@
     document.getElementById("goalText").textContent=f?f.label:(p.yearGoal||"目標を設定しよう");
     var due=document.getElementById("goalDue"); var dv=f?f.due:""; due.textContent=dv; due.style.display=dv?"inline-block":"none";
     document.getElementById("goalWhy").textContent=p.yearGoal?("1年後："+p.yearGoal):"";
-    renderVision();
+    renderVision(); renderPriorities();
   }
   function renderVision(){ var p=data.profile;
     document.getElementById("vVision").textContent=p.vision||"設定で、なりたい姿を書こう";
@@ -367,7 +445,7 @@
     var tl=document.getElementById("vTl"); var ms=(p.milestones||[]).filter(Boolean); tl.innerHTML="";
     if(!ms.length){ tl.innerHTML='<div class="ms"><span class="dot"></span><div class="lab2">設定でマイルストーンを書こう</div></div>'; return; }
     ms.forEach(function(line,i){ var m=parseMs(line);
-      tl.innerHTML+='<div class="ms'+(i===0?" now":"")+'"><span class="dot"></span>'+(m.due?'<div class="due">'+m.due+(i===0?" ・いまここ":"")+'</div>':"")+'<div class="lab2">'+m.label+'</div></div>'; });
+      tl.innerHTML+='<div class="ms'+(i===0?" now":"")+'"><span class="dot"></span>'+(m.due?'<div class="due">'+esc(m.due)+(i===0?" ・いまここ":"")+'</div>':"")+'<div class="lab2">'+esc(m.label)+'</div></div>'; });
     var ri=document.getElementById("reviewInfo"); if(ri) ri.textContent="前回の見直し："+(p.lastReviewed||"まだ")+" ／ 目安：毎月〜3か月に1回";
   }
   renderProfile();
@@ -384,9 +462,51 @@
   document.getElementById("revGo").addEventListener("click",function(){document.getElementById("ov3").classList.remove("show"); openSettings();});
   document.getElementById("setCancel").addEventListener("click",function(){document.getElementById("ov2").classList.remove("show");});
   document.getElementById("setSave").addEventListener("click",function(){
-    data.profile={name:val("setName"),values:val("setValues"),vision:val("setVision"),yearGoal:val("setYear"),yearWhy:val("setYearWhy"),
-      milestones:document.getElementById("setMs").value.split("\n").map(function(s){return s.trim();}).filter(Boolean), lastReviewed:iso(now)};
-    save(data); renderProfile(); document.getElementById("ov2").classList.remove("show");
+    var prev=JSON.parse(JSON.stringify(data));
+    data.profile=Object.assign({},data.profile,{name:val("setName"),values:val("setValues"),vision:val("setVision"),yearGoal:val("setYear"),yearWhy:val("setYearWhy"),
+      milestones:document.getElementById("setMs").value.split("\n").map(function(s){return s.trim();}).filter(Boolean), lastReviewed:iso(now), _sample:false});
+    if(!save(data)){ data=prev; alert("保存できませんでした。空き容量やブラウザの設定をご確認ください。"); return; }
+    renderProfile(); document.getElementById("ov2").classList.remove("show");
+  });
+  function renderPriorities(){ var box=document.getElementById("priList"); if(!box)return;
+    var ps=(data.profile.priorities||[]).filter(Boolean);
+    if(!ps.length){ box.innerHTML='<div class="empty2">タップして、いま力を入れる3つを書こう</div>'; return; }
+    box.innerHTML="";
+    ps.slice(0,3).forEach(function(p,i){ var row=document.createElement("div"); row.className="pitem";
+      var num=document.createElement("span"); num.className="pnum"; num.textContent=(i+1);
+      var txt=document.createElement("span"); txt.textContent=p;
+      row.appendChild(num); row.appendChild(txt); box.appendChild(row); });
+  }
+  function openPri(){ var ps=data.profile.priorities||[];
+    document.getElementById("pri1").value=ps[0]||""; document.getElementById("pri2").value=ps[1]||""; document.getElementById("pri3").value=ps[2]||"";
+    document.getElementById("ov4").classList.add("show");
+  }
+  document.getElementById("priEdit").addEventListener("click",openPri);
+  document.getElementById("priCancel").addEventListener("click",function(){document.getElementById("ov4").classList.remove("show");});
+  document.getElementById("priSave").addEventListener("click",function(){
+    var prev=JSON.parse(JSON.stringify(data));
+    data.profile.priorities=[val("pri1"),val("pri2"),val("pri3")].filter(Boolean); data.profile._sample=false;
+    if(!save(data)){ data=prev; alert("保存できませんでした。空き容量やブラウザの設定をご確認ください。"); return; }
+    renderPriorities(); document.getElementById("ov4").classList.remove("show");
+  });
+  document.getElementById("expBtn").addEventListener("click",function(){
+    try{ var blob=new Blob([JSON.stringify(data)],{type:"application/json"}); var url=URL.createObjectURL(blob);
+      var a=document.createElement("a"); a.href=url; a.download="seichou_note_backup.json"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(url);},800);
+    }catch(e){ alert("書き出しに失敗しました。"); }
+  });
+  document.getElementById("impBtn").addEventListener("click",function(){ document.getElementById("impFile").click(); });
+  document.getElementById("impFile").addEventListener("change",function(e){
+    var f=e.target.files&&e.target.files[0]; if(!f)return;
+    if(!confirm("いまの記録を、読み込むファイルの内容に置き換えます。よろしいですか？")){ e.target.value=""; return; }
+    var rd=new FileReader();
+    rd.onload=function(){ var prev=JSON.parse(JSON.stringify(data)); try{ var obj=JSON.parse(rd.result); data=normalizeData(obj); if(!data.profile||typeof data.profile!=="object")data.profile={};
+        if(!save(data)){ data=prev; alert("保存できませんでした。空き容量をご確認ください。"); return; }
+        renderProfile(); renderHist("hist"); weekDigest(); monthDigest(); reviewRender();
+        alert("読み込みました。");
+      }catch(err){ alert("ファイルを読み込めませんでした。正しいバックアップファイルかご確認ください。"); } };
+    rd.onerror=function(){ alert("ファイルを読めませんでした。"); };
+    rd.readAsText(f); e.target.value="";
   });
   var now=new Date();
   document.getElementById("scDate").textContent=iso(now)+"（"+wd(now)+"）";
@@ -424,7 +544,31 @@
 
   function val(id){return document.getElementById(id).value.trim();}
   function celebrate(a,b){document.getElementById("celeMsg").textContent=a; document.getElementById("celeSub").textContent=b; document.getElementById("ov").classList.add("show");}
-  document.getElementById("celeOk").addEventListener("click",function(){document.getElementById("ov").classList.remove("show");});
+  var MILE=[3,7,10,14,21,30,50,100,150,200,250,300,350];
+  var BUDDY_TH=[3,10,30,45,60,90,120,150,180,210,240,270,300,330,365];
+  var BUDDY_NAMES=["たまご","うまれたて","あかちゃん","こども","やんちゃ","わんぱく","せいねん","たのもしい","りっぱ","ベテラン","エース","マスター","レジェンド","グランド","でんせつ","でんせつ★"];
+  function buddyLevel(n){ var L=0; for(var i=0;i<BUDDY_TH.length;i++){ if(n>=BUDDY_TH[i])L++; } return L; }
+  function mileMsg(n){ var m={3:"習慣になりはじめてる",7:"1週間つづいた、立派",10:"大きな一歩だね",14:"2週間！自信になる",21:"3週間、もう習慣だ",30:"まる1ヶ月、すごい",50:"50日、本物の継続力",100:"100日、誇っていい",150:"150日、ゆるぎない習慣",200:"200日、本物だ",250:"250日、職人の域",300:"300日、もうすぐ1年",350:"350日、あと少しで1年"}; return m[n]||"この調子でいこう"; }
+  function confetti(streak){ var ov=document.getElementById("ov");
+    Array.prototype.forEach.call(ov.querySelectorAll(".conf,.fp,.star"),function(n){n.remove();});
+    if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){ return; } // 動きを減らす設定なら紙吹雪は出さない（メッセージは表示）
+    var cols=["#00A0E9","#FBD7E4","#1D9E75","#EF9F27","#7F77DD","#D4537E"];
+    var big=streak>=30;
+    var n=Math.min(20+streak*4, 150);                 // 連続が増えるほど紙吹雪が増える
+    for(var i=0;i<n;i++){ var s=document.createElement("span"); s.className="conf";
+      s.style.left=(Math.random()*100)+"%"; s.style.background=cols[i%cols.length]; s.style.animationDelay=(Math.random()*0.6)+"s";
+      var sz=6+Math.random()*(big?10:5); s.style.width=sz.toFixed(0)+"px"; s.style.height=(sz*1.6).toFixed(0)+"px";
+      ov.appendChild(s); }
+    var PAW='<svg viewBox="0 0 24 24" fill="#00A0E9" width="22" height="22"><circle cx="6" cy="9" r="2.1"/><circle cx="12" cy="6.5" r="2.3"/><circle cx="18" cy="9" r="2.1"/><path d="M12 11c-3.2 0-5.5 2.3-5.5 4.8 0 2 1.7 3.2 5.5 3.2s5.5-1.2 5.5-3.2C17.5 13.3 15.2 11 12 11z"/></svg>';
+    var pn=Math.min(4+Math.floor(streak/3), 18);       // 肉球も増える
+    for(var j=0;j<pn;j++){ var p=document.createElement("span"); p.className="fp"; p.style.left=(Math.random()*92+4)+"%"; p.style.animationDelay=(Math.random()*0.5)+"s"; p.innerHTML=PAW; ov.appendChild(p); }
+    if(streak>=14){                                    // 2週間以上で星も舞う
+      var STAR='<svg viewBox="0 0 24 24" fill="#EF9F27" width="20" height="20"><path d="M12 2l2.6 6.6L21 9.2l-5 4.5L17.5 21 12 17.3 6.5 21 8 13.7l-5-4.5 6.4-.6z"/></svg>';
+      var sn=Math.min(Math.floor(streak/4), 14);
+      for(var k=0;k<sn;k++){ var s2=document.createElement("span"); s2.className="fp star"; s2.style.left=(Math.random()*92+4)+"%"; s2.style.bottom=(18+Math.random()*30)+"%"; s2.style.animationDelay=(Math.random()*0.6)+"s"; s2.innerHTML=STAR; ov.appendChild(s2); }
+    }
+  }
+  document.getElementById("celeOk").addEventListener("click",function(){var ov=document.getElementById("ov"); ov.classList.remove("show"); Array.prototype.forEach.call(ov.querySelectorAll(".conf,.fp"),function(n){n.remove();});});
 
   function renderHist(boxId){
     var box=document.getElementById(boxId);
@@ -434,24 +578,28 @@
     keys.slice(0,14).forEach(function(k){var e=data.entries[k];
       var emo=Array.isArray(e.emo)?e.emo.join("・"):(e.emo||"");
       var it=document.createElement("div"); it.className="hitem";
-      it.innerHTML='<div class="hd2"><span class="d">'+k+'</span><span class="m">'+emo+'</span></div>'+
-        '<div class="body2">やったこと：'+(e.f1||"-")+'<br>できた：'+(e.f2||"-")+'<br>つまずき：'+(e.f3||"-")+'<br>明日：'+(e.f4||"-")+'</div>';
+      it.innerHTML='<div class="hd2"><span class="d">'+esc(k)+'</span><span class="m">'+esc(emo)+'</span></div>'+
+        '<div class="body2">やったこと：'+esc(e.f1||"-")+'<br>できた：'+esc(e.f2||"-")+'<br>つまずき：'+esc(e.f3||"-")+'<br>明日：'+esc(e.f4||"-")+'</div>';
       it.addEventListener("click",function(){it.classList.toggle("open");}); box.appendChild(it);});
   }
 
-  function calcStreak(){var d=new Date(),c=0; for(var i=0;i<60;i++){var s=iso(d); if(data.entries[s])c++; else if(i>0)break; d.setDate(d.getDate()-1);} return c;}
+  function calcStreak(){var d=new Date(),c=0,i=0; while(i<400){var s=iso(d); if(data.entries[s])c++; else if(i>0)break; d.setDate(d.getDate()-1); i++;} return c;}
 
   function weekDigest(){
     var box=document.getElementById("dgWeek"); var m=monday(now); var got=[],emo={},wins=[],trips=[];
     for(var i=0;i<7;i++){var d=new Date(m); d.setDate(d.getDate()+i); var e=data.entries[iso(d)];
       if(e){got.push(wd(d)); (e.emo||[]).forEach(function(x){emo[x]=(emo[x]||0)+1;}); if(e.f2)wins.push(e.f2); if(e.f3)trips.push(e.f3);}}
-    var top=Object.keys(emo).sort(function(a,b){return emo[b]-emo[a];}).slice(0,3).map(function(k){return k+"("+emo[k]+")";});
+    var top=Object.keys(emo).sort(function(a,b){return emo[b]-emo[a];}).slice(0,3).map(function(k){return esc(k)+"("+emo[k]+")";});
+    var su=new Date(m); su.setDate(su.getDate()+6);
+    var crossYear=(su.getFullYear()!==m.getFullYear());
+    var md=function(d){return (crossYear?d.getFullYear()+"/":"")+(d.getMonth()+1)+"/"+d.getDate();};
     var h='<div class="t"><svg class="paw" viewBox="0 0 24 24" fill="#0E5E86"><circle cx="6" cy="9" r="2.1"/><circle cx="12" cy="6.5" r="2.3"/><circle cx="18" cy="9" r="2.1"/><path d="M12 11c-3.2 0-5.5 2.3-5.5 4.8 0 2 1.7 3.2 5.5 3.2s5.5-1.2 5.5-3.2C17.5 13.3 15.2 11 12 11z"/></svg>今週のあなた（読み返し）</div>';
+    h+='<div class="wk">'+md(m)+'（月）〜'+md(su)+'（日）の週</div>';
     if(!got.length){ h+='<div class="none">今週はまだ日報がありません。日報を書くと、ここに今週のまとめが出ます。</div>'; box.innerHTML=h; return; }
     h+='<div class="r">記録した日：<b>'+got.join("・")+'</b>（'+got.length+'日）</div>';
     h+='<div class="r">よく出た気持ち：'+(top.length?top.join("、"):"—")+'</div>';
-    if(wins.length){h+='<div class="r">できたこと：</div>'; wins.forEach(function(w){h+='<div class="mini">・'+w+'</div>';});}
-    if(trips.length){h+='<div class="r">つまずき：</div>'; trips.forEach(function(w){h+='<div class="mini">・'+w+'</div>';});}
+    if(wins.length){h+='<div class="r">できたこと：</div>'; wins.forEach(function(w){h+='<div class="mini">・'+esc(w)+'</div>';});}
+    if(trips.length){h+='<div class="r">つまずき：</div>'; trips.forEach(function(w){h+='<div class="mini">・'+esc(w)+'</div>';});}
     box.innerHTML=h;
   }
   function monthDigest(){
@@ -459,11 +607,33 @@
     Object.keys(data.weekly).sort().forEach(function(wk){ if(data.weekly[wk].month===mk) rows.push(data.weekly[wk]); });
     var h='<div class="t"><svg class="paw" viewBox="0 0 24 24" fill="#0E5E86"><circle cx="6" cy="9" r="2.1"/><circle cx="12" cy="6.5" r="2.3"/><circle cx="18" cy="9" r="2.1"/><path d="M12 11c-3.2 0-5.5 2.3-5.5 4.8 0 2 1.7 3.2 5.5 3.2s5.5-1.2 5.5-3.2C17.5 13.3 15.2 11 12 11z"/></svg>今月のあなた（週報から）</div>';
     if(!rows.length){h+='<div class="none">今月の週報がまだありません。週報を書くと、ここに今月のまとめが出ます。</div>'; box.innerHTML=h; return;}
-    rows.forEach(function(r){ if(r.w1)h+='<div class="mini">手応え：'+r.w1+'</div>'; });
-    rows.forEach(function(r){ if(r.w4||r.step)h+='<div class="mini">来週の一歩：'+(r.step||"")+(r.w4?(" / "+r.w4):"")+'</div>'; });
+    rows.forEach(function(r){ if(r.w1)h+='<div class="mini">手応え：'+esc(r.w1)+'</div>'; });
+    rows.forEach(function(r){ if(r.w4||r.step)h+='<div class="mini">来週の一歩：'+esc(r.step||"")+(r.w4?(" / "+esc(r.w4)):"")+'</div>'; });
     box.innerHTML=h;
   }
-  function reviewRender(){
+  function daysSinceLast(){ var ks=Object.keys(data.entries).filter(function(k){return k!==iso(now);}).sort(); if(!ks.length)return 999; var a=ks[ks.length-1].split("-"); var ld=new Date(+a[0],+a[1]-1,+a[2]); return Math.round((new Date(now.getFullYear(),now.getMonth(),now.getDate())-ld)/86400000); }
+  function buddySVG(L,mood){
+    if(L===0){ return '<svg viewBox="0 0 80 80" width="74" height="74"><ellipse cx="40" cy="45" rx="22" ry="27" fill="#f3ead8" stroke="#d8c7a6" stroke-width="2"/><ellipse cx="34" cy="40" rx="3.5" ry="4.5" fill="#e9dcc1"/><ellipse cx="47" cy="51" rx="4.5" ry="5.5" fill="#e9dcc1"/></svg>'; }
+    var maxL=BUDDY_TH.length;                 // 15
+    var r=23+Math.min(L,12)*1.4;              // 育つほど大きく（上限あり）
+    var cols=["#cfe9f8","#bfe6f8","#9fd9f4","#8fd0f2","#6cc2ee","#4db5ec","#2aa8e9","#00A0E9","#0090d4"];
+    var col=cols[Math.min(L,cols.length-1)]; var top=45-r;
+    var eyes = mood==="genki"?'<path d="M33 41 q3 -3 6 0 M45 41 q3 -3 6 0" stroke="#26404f" stroke-width="2.4" fill="none" stroke-linecap="round"/>':(mood==="matsu"?'<circle cx="36" cy="42" r="2.4" fill="#26404f"/><circle cx="50" cy="42" r="2.4" fill="#26404f"/>':'<path d="M33 43 q3 3 6 0 M45 43 q3 3 6 0" stroke="#26404f" stroke-width="2.2" fill="none" stroke-linecap="round"/>');
+    var mouth = mood==="genki"?'<path d="M37 50 q3 4 7 0" stroke="#26404f" stroke-width="1.8" fill="none" stroke-linecap="round"/>':'';
+    var ears = L>=2?'<path d="M28 '+top+' l-4 -11 l11 5 Z" fill="'+col+'"/><path d="M52 '+top+' l4 -11 l-11 5 Z" fill="'+col+'"/>':'';
+    var crown = L>=8?'<path d="M30 '+(top-3)+' l4 -9 l6 7 l6 -7 l4 9 Z" fill="#EF9F27"/>':'';
+    var halo = L>=maxL?'<circle cx="40" cy="45" r="'+(r+5)+'" fill="none" stroke="#EF9F27" stroke-width="2" stroke-dasharray="3 4"/>':'';
+    return '<svg viewBox="0 0 80 80" width="74" height="74">'+halo+ears+crown+'<circle cx="40" cy="45" r="'+r+'" fill="'+col+'"/><circle cx="34" cy="42" r="4" fill="rgba(255,255,255,.45)"/>'+eyes+mouth+'</svg>';
+  }
+  function renderBuddy(){ var box=document.getElementById("buddy"); if(!box)return;
+    var n=Object.keys(data.entries).length; var L=buddyLevel(n);
+    var todayDone=!!data.entries[iso(now)]; var gap=daysSinceLast();
+    var mood=(todayDone||gap<=1)?"genki":(gap<=4?"matsu":"sabishi");
+    var mm=mood==="genki"?"げんき！いっしょに育ってるね":(mood==="matsu"?"まってるよ。むりせずにね":"また会えるのをまってる");
+    var nx = L<BUDDY_TH.length ? ("つぎの成長まで あと"+(BUDDY_TH[L]-n)+"日") : "365日たっせい！でんせつの相棒";
+    box.innerHTML='<div class="bd-art">'+buddySVG(L,mood)+'</div><div><div class="bd-name">'+BUDDY_NAMES[L]+' <span style="font-size:12px;color:var(--hint);font-weight:400">これまで'+n+'日</span></div><div class="bd-mood">'+mm+'</div><div class="bd-next">'+nx+'</div></div>';
+  }
+  function reviewRender(){ renderBuddy();
     document.getElementById("stDays").textContent=Object.keys(data.entries).length;
     document.getElementById("stStreak").textContent=calcStreak();
     var emo={}; Object.keys(data.entries).forEach(function(k){(data.entries[k].emo||[]).forEach(function(x){emo[x]=(emo[x]||0)+1;});});
@@ -472,42 +642,70 @@
     if(!arr.length){box.innerHTML='<div class="empty" style="padding:8px">記録がたまると、ここに出ます</div>'; return;}
     var max=emo[arr[0]]; box.innerHTML="";
     arr.forEach(function(k){var pct=Math.round(emo[k]/max*100);
-      box.innerHTML+='<div class="bar"><span class="nm">'+k+'</span><span class="tr"><span class="fl" style="width:'+pct+'%"></span></span><span class="ct">'+emo[k]+'</span></div>';});
+      box.innerHTML+='<div class="bar"><span class="nm">'+esc(k)+'</span><span class="tr"><span class="fl" style="width:'+pct+'%"></span></span><span class="ct">'+emo[k]+'</span></div>';});
   }
 
   renderHist("hist"); weekDigest(); monthDigest(); reviewRender();
 
   // tabs
   var titles={daily:"今日の記録",weekly:"今週のふりかえり",monthly:"今月のふりかえり",vision:"めざす姿",review:"あなたの歩み"};
-  document.getElementById("tabbar").addEventListener("click",function(e){
-    var a=e.target.closest("a"); if(!a)return; var sc=a.getAttribute("data-sc");
-    Array.prototype.forEach.call(this.children,function(x){x.classList.remove("on")}); a.classList.add("on");
+  document.querySelectorAll(".screen").forEach(function(s){ s.setAttribute("role","tabpanel"); });
+  function switchTab(a){ var sc=a.getAttribute("data-sc");
+    now=new Date(); document.getElementById("scDate").textContent=iso(now)+"（"+wd(now)+"）";
+    Array.prototype.forEach.call(document.getElementById("tabbar").children,function(x){x.classList.remove("on"); x.setAttribute("aria-selected","false"); x.setAttribute("tabindex","-1");});
+    a.classList.add("on"); a.setAttribute("aria-selected","true"); a.setAttribute("tabindex","0");
     document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active")});
     document.getElementById("sc-"+sc).classList.add("active");
     document.getElementById("scTitle").textContent=titles[sc];
     document.getElementById("scDate").style.display = (sc==="daily")?"block":"none";
     if(sc==="weekly")weekDigest(); if(sc==="monthly")monthDigest(); if(sc==="vision")renderVision(); if(sc==="review"){reviewRender(); renderHist("hist2");}
     window.scrollTo(0,0);
+  }
+  document.getElementById("tabbar").addEventListener("click",function(e){
+    var a=e.target.closest("a"); if(!a)return; switchTab(a);
+  });
+  document.getElementById("tabbar").addEventListener("keydown",function(e){
+    var a=e.target.closest("a"); if(!a)return;
+    if(e.key==="Enter"||e.key===" "){ e.preventDefault(); switchTab(a); return; }
+    if(e.key==="ArrowRight"||e.key==="ArrowLeft"){ e.preventDefault();
+      var tabs=Array.prototype.slice.call(this.children); var i=tabs.indexOf(a);
+      var ni=(e.key==="ArrowRight")?(i+1)%tabs.length:(i-1+tabs.length)%tabs.length;
+      tabs[ni].focus(); switchTab(tabs[ni]); }
   });
 
   // save handlers
   document.querySelectorAll("[data-save]").forEach(function(btn){
     btn.addEventListener("click",function(){
+      now=new Date();
+      var prev=JSON.parse(JSON.stringify(data));
       var kind=btn.getAttribute("data-save");
       if(kind==="daily"){
         var list=picked(document.getElementById("chips-d"));
+        var gapBefore=daysSinceLast();
+        var existedToday=!!data.entries[iso(now)];
         data.entries[iso(now)]={f1:val("f1"),f2:val("f2"),f3:val("f3"),f4:val("f4"),emo:list,ts:new Date().toISOString()};
-        save(data); renderHist("hist"); updateTenure(); weekDigest();
-        var msg=message(pickEmo(list)); celebrate(msg[0],msg[1]);
+        if(!save(data)){ data=prev; celebrate("保存できませんでした", "空き容量やブラウザの設定をご確認ください。"); return; }
+        renderHist("hist"); updateTenure(); weekDigest(); renderBuddy();
+        var st=calcStreak(); var n=Object.keys(data.entries).length;
+        if(existedToday){ celebrate("更新したよ", "今日の記録を上書きしました。"); }
+        else if(st===365){ confetti(150); celebrate("365日連続！毎日つづけた1年", "信じられないくらいすごい。心から、おめでとう。"); }
+        else if(n===365){ confetti(150); celebrate("365日、1年つづいた！", "ほんとうに、ほんとうにすごい。最高の1年。"); }
+        else if(BUDDY_TH.indexOf(n)>=0){ confetti(Math.max(st,Math.min(n,30))); celebrate("あいぼうが育った！", BUDDY_NAMES[buddyLevel(n)]+"になったよ（これまで"+n+"日）"); }
+        else if(MILE.indexOf(st)>=0){ confetti(st); celebrate(st+"日つづいた！", mileMsg(st)); }
+        else if(gapBefore>=3){ celebrate("おかえり！まってたよ", "また会えてうれしい。ゆっくりでいい。"); }
+        else { var msg=message(pickEmo(list)); celebrate(msg[0],msg[1]); }
       } else if(kind==="weekly"){
+        var wkThu=monday(now); wkThu.setDate(wkThu.getDate()+3); // その週の木曜＝週の過半が属する月。保存した曜日に依存しない
         data.weekly[weekKey(now)]={w1:val("w1"),w2:val("w2"),emo:picked(document.getElementById("chips-w")),
           cond:picked(document.getElementById("cond-w")),condNote:val("wc"),w3:val("w3"),step:(picked(document.getElementById("step-w"))[0]||""),
-          w4:val("w4"),w5:val("w5"),month:monKey(now),ts:new Date().toISOString()};
-        save(data); monthDigest(); celebrate("今週、よく振り返ったね。","点が線になってきている。");
+          w4:val("w4"),w5:val("w5"),month:monKey(wkThu),ts:new Date().toISOString()};
+        if(!save(data)){ data=prev; celebrate("保存できませんでした", "空き容量やブラウザの設定をご確認ください。"); return; }
+        monthDigest(); celebrate("今週、よく振り返ったね。","点が線になってきている。");
       } else if(kind==="monthly"){
         data.monthly[monKey(now)]={score:scoreVal,m1:val("m1"),m2:val("m2"),emo:picked(document.getElementById("chips-m")),
           m3:val("m3"),m4:val("m4"),m5:val("m5"),m6:val("m6"),ts:new Date().toISOString()};
-        save(data); celebrate("今月もおつかれさま。","上司との対話の材料ができたね。");
+        if(!save(data)){ data=prev; celebrate("保存できませんでした", "空き容量やブラウザの設定をご確認ください。"); return; }
+        celebrate("今月もおつかれさま。","上司との対話の材料ができたね。");
       }
     });
   });
