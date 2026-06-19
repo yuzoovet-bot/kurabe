@@ -160,6 +160,12 @@
   .ta:focus-visible,.seti:focus-visible{outline:2px solid var(--navy); outline-offset:1px; border-radius:6px;}
   .submit:focus-visible,.chip:focus-visible,.score .s:focus-visible,.cele button:focus-visible,
   .tab a:focus-visible,.hgear:focus-visible,.pedit:focus-visible,.vedit:focus-visible{outline:3px solid var(--navy); outline-offset:2px;}
+  .values{box-shadow:var(--shadow);}
+  .values .vedit{padding:8px; margin:-6px; min-width:40px; min-height:40px; display:flex; align-items:center; justify-content:center;}
+  .creedtext{font-family:var(--round); font-size:17px; font-weight:600; color:var(--lav); margin-top:4px; line-height:1.5; letter-spacing:.05em;}
+  .visioncard{background:linear-gradient(135deg,#eef6fb 0%,#e9f3fb 100%); border:1px solid #d7e8f3; border-radius:16px; padding:11px 14px; margin-bottom:11px; box-shadow:var(--shadow);}
+  .visioncard .vlabel{font-family:var(--round); font-size:12px; color:var(--navy); font-weight:600;}
+  .visioncard .vtext2{font-size:14px; color:var(--ink); margin-top:3px; line-height:1.6;}
 </style>
 </head>
 <body>
@@ -184,16 +190,20 @@
 
     <div class="topfix">
       <div class="values">
-        <div class="vhead"><span class="vt" id="valName">あなたの大事にしている価値観</span></div>
-        <div class="vtext" id="valText"></div>
+        <div class="vhead"><span class="vt" id="creedLabel">理念</span><button class="vedit" id="creedEdit" aria-label="軸を見直す"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div>
+        <div class="creedtext" id="creedText"></div>
+      </div>
+      <div class="visioncard">
+        <div class="vlabel">ビジョン（なりたい姿）</div>
+        <div class="vtext2" id="visionTop"></div>
       </div>
       <div class="goalc">
-        <div class="gtop"><span class="gl"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>いまのフォーカス（直近の節目）</span><span class="gdue" id="goalDue"></span></div>
+        <div class="gtop"><span class="gl"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>目標（直近の節目）</span><span class="gdue" id="goalDue"></span></div>
         <div class="gtext" id="goalText"></div>
         <div class="gwhy" id="goalWhy"></div>
       </div>
       <div class="prio">
-        <div class="ph"><span class="pt">いまの優先（トップ3）</span><button class="pedit" id="priEdit" aria-label="優先を編集"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div>
+        <div class="ph"><span class="pt">実際の行動（優先トップ3）</span><button class="pedit" id="priEdit" aria-label="行動を編集"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div>
         <div id="priList"></div>
       </div>
     </div>
@@ -262,15 +272,20 @@
 
     <!-- ===== めざす姿 ===== -->
     <div class="screen" id="sc-vision">
-      <div class="vsec"><div class="h">ビジョン（なりたい姿）</div>
+      <div class="intro">理念から日々の行動まで、一本の線に。上ほど変わらない軸、下ほど機動的に。</div>
+      <div class="vsec"><div class="h">① 理念（人生で大事にする言葉）</div>
+        <div class="vbox vision"><div class="big2" id="vCreed"></div></div></div>
+      <div class="vsec"><div class="h">② ビジョン（なりたい姿）</div>
         <div class="vbox vision"><div class="big2" id="vVision"></div></div></div>
-      <div class="vsec"><div class="h">1年の目標</div>
+      <div class="vsec"><div class="h">③ 目標（数字の入った1年の到達点）</div>
         <div class="vbox"><div class="big2" id="vYear"></div><div class="gwhy" id="vYearWhy" style="margin-top:4px"></div></div></div>
-      <div class="vsec"><div class="h">マイルストーン（いまの自分から逆算）</div>
+      <div class="vsec"><div class="h">④ プランニング＝マイルストーン（いまから逆算の節目）</div>
         <div class="vbox"><div class="tl" id="vTl"></div></div></div>
+      <div class="vsec"><div class="h">⑤ 実際の行動は「日報」上部の優先トップ3で</div>
+        <div class="vbox"><div class="big2" id="vActHint" style="font-size:13px; color:var(--sub)">いちばん下の層＝日々の優先トップ3は、各タブ上部からいつでも編集できます。</div></div></div>
       <div id="reviewInfo" style="text-align:center; font-size:12px; color:var(--hint); margin-bottom:8px"></div>
       <button class="submit" id="vEditBtn" style="background:#eef2f5; color:#0883bf">軸を見直す</button>
-      <div class="note">価値観・目標は、毎月または3か月ごとの振り返りで見直します</div>
+      <div class="note">理念・ビジョン・目標・マイルストーンは、毎月または3か月ごとの振り返りで見直します</div>
     </div>
 
     <!-- ===== ふりかえり ===== -->
@@ -315,12 +330,12 @@
     <div class="cele" style="width:322px; text-align:left">
       <div style="font-size:16px; font-weight:600; margin-bottom:4px; text-align:center">設定</div>
       <div style="font-size:12px; color:var(--hint); text-align:center; margin-bottom:10px">理念→目標→日々、を一本の線に</div>
+      <label class="setl">① 理念（人生で大事にする言葉・短く）</label><input class="seti" id="setCreed" placeholder="例：愛・感謝・真剣・成長">
       <label class="setl">名前</label><input class="seti" id="setName" placeholder="例：山田 華">
-      <label class="setl">大事にしている価値観</label><textarea class="seti" id="setValues" rows="3" placeholder="自分が大切にしたいこと"></textarea>
-      <label class="setl">ビジョン（なりたい姿）</label><textarea class="seti" id="setVision" rows="2" placeholder="どんな獣医師・看護師・グルーマーになりたいか"></textarea>
-      <label class="setl">1年の目標</label><input class="seti" id="setYear" placeholder="例：一般診療を一人で回せるようになる">
+      <label class="setl">② ビジョン（なりたい姿）</label><textarea class="seti" id="setVision" rows="2" placeholder="どんな獣医師・看護師・グルーマーになりたいか"></textarea>
+      <label class="setl">③ 1年の目標（数字を入れて）</label><input class="seti" id="setYear" placeholder="例：一般診療を一人で回せるようになる">
       <label class="setl">その目標のなぜ</label><textarea class="seti" id="setYearWhy" rows="2"></textarea>
-      <label class="setl">マイルストーン（逆算の節目・1行に1つ、「期限：内容」）</label><textarea class="seti" id="setMs" rows="4" placeholder="6月末：1日8件を一人で回す&#10;9月末：初診の問診を一人で完結&#10;12月末：外科の助手を任される&#10;3月末：一般診療を一人で回す"></textarea>
+      <label class="setl">④ プランニング＝マイルストーン（逆算の節目・1行に1つ、「期限：内容」）</label><textarea class="seti" id="setMs" rows="4" placeholder="6月末：1日8件を一人で回す&#10;9月末：初診の問診を一人で完結&#10;12月末：外科の助手を任される&#10;3月末：一般診療を一人で回す"></textarea>
       <div style="display:flex; gap:9px; margin-top:14px">
         <button id="setCancel" style="flex:1; background:#eef2f5; color:var(--sub); border:none; padding:11px; border-radius:11px; font:inherit; font-weight:600; cursor:pointer">やめる</button>
         <button id="setSave" style="flex:1; background:var(--blue); color:#fff; border:none; padding:11px; border-radius:11px; font:inherit; font-weight:600; cursor:pointer">保存する</button>
@@ -331,7 +346,7 @@
   <div class="ov" id="ov3">
     <div class="cele" style="width:300px">
       <div style="font-size:15.5px; font-weight:600; margin-bottom:6px">軸を見直しますか？</div>
-      <div style="font-size:13px; color:var(--sub); margin-bottom:16px; text-align:left">価値観・ビジョン・目標・マイルストーンは、毎月または3か月ごとの振り返りのときに、腰を据えて見直すものです。日々の記録のついでに変えるものではありません。</div>
+      <div style="font-size:13px; color:var(--sub); margin-bottom:16px; text-align:left">理念・ビジョン・目標・マイルストーンは、毎月または3か月ごとの振り返りのときに、腰を据えて見直すものです。日々の記録のついでに変えるものではありません。</div>
       <div style="display:flex; gap:9px">
         <button id="revCancel" style="flex:1; background:#eef2f5; color:var(--sub); border:none; padding:11px; border-radius:11px; font:inherit; font-weight:600; cursor:pointer">やめる</button>
         <button id="revGo" style="flex:1; background:var(--blue); color:#fff; border:none; padding:11px; border-radius:11px; font:inherit; font-weight:600; cursor:pointer">いま見直す</button>
@@ -414,24 +429,26 @@
     return d;
   }
   var data=normalizeData(load());
-  var SAMPLE_VER=2;
+  var SAMPLE_VER=3;
   function sampleProfile(){ return {name:"山田 華",
-    values:"動物にも飼い主さんにも、誠実でいること。わからないことは「わからない」と正直に言える、そんな自分でいたい。",
-    vision:"飼い主さんが安心して何でも相談できる、やさしくて頼れる獣医師になる。",
+    creed:"愛・感謝・真剣・成長",
+    vision:"動物にも飼い主さんにも、誠実でいること。わからないことは「わからない」と正直に言える、そんな自分でいたい。",
     yearGoal:"一般診療を一人で回せるようになる",
     yearWhy:"チームの戦力になって、夜間や急患も任せてもらえる存在になりたいから",
     milestones:["6月末：1日8件の診察を一人で回す","9月末：初診の問診を10件 最後まで一人で","12月末：基本的な外科の助手を5件 任される","3月末：一般診療を1日15件 一人で回す"],
     priorities:["初診の問診を、1日3件は最後まで一人で","採血の成功を まずは10回中8回に","気になったことは その日のうちに3つ 先輩へ質問"],
     lastReviewed:"2026-06-17", _sample:true, _sampleVer:SAMPLE_VER}; }
-  if(!data.profile){ data.profile=sampleProfile(); }
+  function isBlankProfile(p){ return !p || (!p.name && !p.creed && !p.vision && !p.yearGoal && (!p.priorities||!p.priorities.length) && (!p.milestones||!p.milestones.length)); }
+  if(!data.profile || isBlankProfile(data.profile)){ data.profile=sampleProfile(); }
   else if((data.profile._sample===true && (data.profile._sampleVer||0)<SAMPLE_VER) || data.profile.name==="やまだ はな"){
     // 未編集のお試しサンプル（または旧版サンプル名）のみ最新サンプルへ差し替え。編集済みの実データは触らない。
     data.profile=sampleProfile(); save(data);
   }
   function parseMs(line){ var i=line.search(/[：:]/); return i>0?{due:line.slice(0,i).trim(),label:line.slice(i+1).trim()}:{due:"",label:line.trim()}; }
   function renderProfile(){ var p=data.profile;
-    document.getElementById("valName").textContent=(p.name||"あなた")+"の大事にしている価値観";
-    document.getElementById("valText").textContent=p.values||"タップして、あなたの価値観を設定しよう";
+    document.getElementById("creedLabel").textContent=(p.name?p.name+" の理念":"理念");
+    document.getElementById("creedText").textContent=p.creed||"タップして、人生の理念（大事にする言葉）を書こう";
+    document.getElementById("visionTop").textContent=p.vision||"タップして、なりたい姿（ビジョン）を書こう";
     var ms=(p.milestones||[]).filter(Boolean); var f=ms.length?parseMs(ms[0]):null;
     document.getElementById("goalText").textContent=f?f.label:(p.yearGoal||"目標を設定しよう");
     var due=document.getElementById("goalDue"); var dv=f?f.due:""; due.textContent=dv; due.style.display=dv?"inline-block":"none";
@@ -439,6 +456,7 @@
     renderVision(); renderPriorities();
   }
   function renderVision(){ var p=data.profile;
+    var vc=document.getElementById("vCreed"); if(vc) vc.textContent=p.creed||"設定で、人生の理念を書こう";
     document.getElementById("vVision").textContent=p.vision||"設定で、なりたい姿を書こう";
     document.getElementById("vYear").textContent=p.yearGoal||"—";
     document.getElementById("vYearWhy").textContent=p.yearWhy?("なぜ："+p.yearWhy):"";
@@ -450,7 +468,7 @@
   }
   renderProfile();
   function openSettings(){ var p=data.profile;
-    document.getElementById("setName").value=p.name||""; document.getElementById("setValues").value=p.values||"";
+    document.getElementById("setName").value=p.name||""; document.getElementById("setCreed").value=p.creed||"";
     document.getElementById("setVision").value=p.vision||""; document.getElementById("setYear").value=p.yearGoal||"";
     document.getElementById("setYearWhy").value=p.yearWhy||""; document.getElementById("setMs").value=(p.milestones||[]).join("\n");
     document.getElementById("ov2").classList.add("show");
@@ -458,12 +476,13 @@
   function askReview(){ document.getElementById("ov3").classList.add("show"); }
   document.getElementById("btnSet").addEventListener("click",askReview);
   document.getElementById("vEditBtn").addEventListener("click",askReview);
+  var creedEditBtn=document.getElementById("creedEdit"); if(creedEditBtn) creedEditBtn.addEventListener("click",askReview);
   document.getElementById("revCancel").addEventListener("click",function(){document.getElementById("ov3").classList.remove("show");});
   document.getElementById("revGo").addEventListener("click",function(){document.getElementById("ov3").classList.remove("show"); openSettings();});
   document.getElementById("setCancel").addEventListener("click",function(){document.getElementById("ov2").classList.remove("show");});
   document.getElementById("setSave").addEventListener("click",function(){
     var prev=JSON.parse(JSON.stringify(data));
-    data.profile=Object.assign({},data.profile,{name:val("setName"),values:val("setValues"),vision:val("setVision"),yearGoal:val("setYear"),yearWhy:val("setYearWhy"),
+    data.profile=Object.assign({},data.profile,{name:val("setName"),creed:val("setCreed"),vision:val("setVision"),yearGoal:val("setYear"),yearWhy:val("setYearWhy"),
       milestones:document.getElementById("setMs").value.split("\n").map(function(s){return s.trim();}).filter(Boolean), lastReviewed:iso(now), _sample:false});
     if(!save(data)){ data=prev; alert("保存できませんでした。空き容量やブラウザの設定をご確認ください。"); return; }
     renderProfile(); document.getElementById("ov2").classList.remove("show");
